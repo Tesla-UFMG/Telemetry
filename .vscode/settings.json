@@ -1,0 +1,8 @@
+{
+    "git.ignoreLimitWarning": true,
+    "files.associations": {
+        "interface_master.h": "c",
+        "xbee.h": "c",
+        "telemetry.h": "c"
+    }
+}
