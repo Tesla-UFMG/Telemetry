@@ -1,3 +1,4 @@
+
 #include "lcd_dash.h"
 
 /*Extern variables*/
@@ -19,9 +20,7 @@ uint8_t aux;
 
 
 /* Pages and informations:
-
 Page 0: GIF Init page
-
 Page 1: Drive Page:
 -Battery Percent(j0, n0)
 -Hodometer(x1)
@@ -29,7 +28,6 @@ Page 1: Drive Page:
 -B.Bias(n3)
 -TC(t0)
 -Torque(n1)
-
 Page 2: Enduro Page:
 -Motor Efficiency(p1.pic = 9 = Good Efficiency; p1.pic = 10 = Bad Efficiency)
 -Battery Percent(j1, n4)
@@ -40,7 +38,6 @@ Page 2: Enduro Page:
 -TC(t0)
 -Torque(n0)
 -Distance Per Charge(p0.pic -> 5 > 38 > 39 > 6)
-
 Page 3: Eletronic Systems
 -Max temperature(x0)
 -Min Voltage(x1)
@@ -53,7 +50,6 @@ Page 3: Eletronic Systems
 -Rocker(n2)
 -Hour(n0)
 -Minute(n1)
-
 Page 4: Debug Area
 -Id 350_0: n0
 -Id 350_1: n5
@@ -64,7 +60,6 @@ Page 4: Debug Area
 -Id 352_0: n2
 -Id 352_1: n3
 -Id 352_2: n8
-
 Page 5: Advice Area
 -Error(t0)
 */
@@ -73,6 +68,31 @@ Page 5: Advice Area
 
 
 /* Dash Functions: */
+
+// detecção bit uint_16
+int get_individual_flag16(int position, uint16_t entrada){
+	if(entrada & (1<<position))
+		return 1;   // Ocorre se a entrada, tiver no bit de position i, o valor 1.
+    else
+    	return 0; // Ocorre se a entrada, tiver no bit de position i, o valor 0.
+}
+
+int calc_pressao_dianteira(uint16_t press_d){
+	int pressao_dianteira = (300 * can_vector[170].word_0)/5;
+	return pressao_dianteira;
+}
+
+int calc_pressao_traseira(uint16_t press_t){
+	int pressao_traseira = (80 * can_vector[170].word_1)/5;
+	return pressao_traseira;
+
+}
+
+int brake_bias(int pressao_dianteira, int pressao_traseira){
+ 	 int b_bias = (pressao_dianteira / (pressao_dianteira + pressao_traseira))*100;
+ 	 return b_bias;
+}
+
 
 void uart3MessageReceived(void)
 {
@@ -208,9 +228,9 @@ void nextionLoop(void)
         NexXfloatSetValue(1, can_vector[105].word_3); // Speed
       }
 
-//      else if(_flag_information_to_send == 4){
-//        NexNumberSetValue(3, brake_bias); // Brake Bias
-//      }
+      else if(_flag_information_to_send == 4){
+    	  NexNumberSetValue(3, brake_bias); // Brake Bias
+      }
 
       else if(_flag_information_to_send == 5){
         if(can_vector[102].word_1 && 0b0000000000001000 == 0)
@@ -386,6 +406,123 @@ void nextionLoop(void)
         NexPageShow(actual_page);
       }
 
+      break;
+
+    case PAGE6:
+
+        	// ECU errors
+
+        	if (get_individual_flag16 (0, can_vector[103].word_0) == 1)
+        		NexNumberSetValue(0, 0);
+
+        	if (get_individual_flag16 (1, can_vector[103].word_0) == 1)
+        		NexNumberSetValue(1, 1);
+
+        	if (get_individual_flag16 (8, can_vector[103].word_0) == 1)
+        		NexNumberSetValue(2, 8);
+
+        	if (get_individual_flag16 (9, can_vector[103].word_0) == 1)
+        		NexNumberSetValue(3, 9);
+
+        	if (get_individual_flag16 (10, can_vector[103].word_0) == 1)
+        		NexNumberSetValue(4, 10);
+
+        	// ECU status
+
+        	if (get_individual_flag16 (1, can_vector[103].word_1) == 1)
+        		NexNumberSetValue(8, 1);
+
+        	if (get_individual_flag16 (2, can_vector[103].word_1) == 1)
+        		NexNumberSetValue(9, 2);
+
+        	if (get_individual_flag16 (3, can_vector[103].word_1) == 1)
+        		NexNumberSetValue(10, 3);
+
+        	if (get_individual_flag16 (4, can_vector[103].word_1) == 1)
+        		NexNumberSetValue(11, 4);
+
+        	if (get_individual_flag16 (5, can_vector[103].word_1) == 1)
+        		NexNumberSetValue(12, 5);
+
+        	if (get_individual_flag16 (6, can_vector[103].word_1) == 1)
+        		NexNumberSetValue(13, 6);
+
+        	if (get_individual_flag16 (10, can_vector[103].word_1) == 1)
+        		NexNumberSetValue(14, 10);
+
+        	if (get_individual_flag16 (11, can_vector[103].word_1) == 1)
+        		NexNumberSetValue(15, 11);
+
+        break;
+
+    case PAGE7:
+
+        	// página de preenchimento de condições de teste 1
+
+        	if (NexNumberGetValue(10)==1){
+
+        		can_vector[180].word_0 = NexNumberGetValue(0);
+        		can_vector[180].word_1 = NexNumberGetValue(1);
+        		can_vector[180].word_2 = NexNumberGetValue(2);
+        		can_vector[180].word_3 = NexNumberGetValue(3);
+        		CAN_Transmit2(can_vector,180);
+
+        		can_vector[181].word_0 = NexNumberGetValue(4);
+        		can_vector[181].word_1 = NexNumberGetValue(5);
+        		can_vector[181].word_2 = NexNumberGetValue(6);
+        		can_vector[181].word_3 = NexNumberGetValue(7);
+        		CAN_Transmit2(can_vector,181);
+
+        		can_vector[182].word_0 = NexNumberGetValue(8);
+        		can_vector[182].word_1 = NexNumberGetValue(9);
+        		can_vector[182].word_2 = NexCheckboxGetValue(0);
+        		can_vector[182].word_3 = NexCheckboxGetValue(1);
+        		CAN_Transmit2(can_vector,182);
+
+        		can_vector[183].word_0 = NexCheckboxGetValue(2);
+        		can_vector[183].word_1 = NexCheckboxGetValue(4);
+        		can_vector[183].word_2 = NexCheckboxGetValue(5);
+        		CAN_Transmit2(can_vector,183);
+        	}
+
+        break;
+
+        case PAGE8:
+
+        	// página de preenchimento de condições de teste 2
+
+        	if (NexNumberGetValue(10)==1){
+
+        		can_vector[184].word_0 = NexCheckboxGetValue(3);
+        		can_vector[184].word_1 = NexCheckboxGetValue(4);
+        		can_vector[184].word_2 = NexCheckboxGetValue(5);
+        		can_vector[184].word_3 = NexCheckboxGetValue(6);
+        		CAN_Transmit2(can_vector,184);
+
+        		can_vector[185].word_3 = NexCheckboxGetValue(7);
+        		can_vector[185].word_1 = NexCheckboxGetValue(8);
+        		can_vector[185].word_2 = NexCheckboxGetValue(9);
+        		can_vector[185].word_3 = NexCheckboxGetValue(0);
+        		CAN_Transmit2(can_vector,185);
+
+        		can_vector[186].word_0 = NexCheckboxGetValue(1);
+        		can_vector[186].word_1 = NexCheckboxGetValue(2);
+        		can_vector[186].word_2 = NexCheckboxGetValue(10);
+        		can_vector[186].word_3 = NexCheckboxGetValue(11);
+        		CAN_Transmit2(can_vector,186);
+
+        		can_vector[187].word_0 = NexCheckboxGetValue(12);
+        		can_vector[187].word_1 = NexCheckboxGetValue(13);
+        		can_vector[187].word_2 = NexNumberGetValue(4);
+        		can_vector[187].word_3 = NexNumberGetValue(5);
+        		CAN_Transmit2(can_vector,187);
+
+        		can_vector[188].word_0 = NexNumberGetValue(0);
+        		can_vector[188].word_1 = NexNumberGetValue(1);
+        		can_vector[188].word_2 = NexNumberGetValue(2);
+        		can_vector[188].word_3 = NexNumberGetValue(3);
+        		CAN_Transmit2(can_vector,188);
+        	}
   }
 
   _flag_information_to_send++;

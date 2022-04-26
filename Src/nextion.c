@@ -21,6 +21,21 @@ extern UART_HandleTypeDef huart3;
 #define NEX_RET_INVALID_VARIABLE             (0x1A)
 #define NEX_RET_INVALID_OPERATION            (0x1B)
 
+// defines página de debug
+#define ErrorBSEandAPPs           0
+#define ErrorAPPs                 1
+#define ErrorCommInversor         8
+#define ErrorCurto                9
+#define ErrorBussOffInv           10
+#define StatusRTD                 1
+#define StatusBussOffInv          2
+#define StatusInvReady            3
+#define StatusFrenRegAtiva        4
+#define StatusConDin              5
+#define StatusPisMolhada          6
+#define StatusFreiRegFuncion      10
+#define StatusConDinFuncion       11
+
 char ENDTERMS[]={255,255,255};
 
 void sendCommand(const char* cmd)

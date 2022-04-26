@@ -17,7 +17,10 @@ typedef enum {
     PAGE2,
     PAGE3,
     PAGE4,
-    PAGE5
+    PAGE5,
+	PAGE6,
+	PAGE7,
+	PAGE8
 }NextionPage_e;
 
 /* Nextion Advise Enum */

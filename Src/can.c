@@ -42,6 +42,8 @@
 
 #include "gpio.h"
 
+
+
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -206,6 +208,30 @@ void CAN_Transmit(uint8_t *vet, uint32_t id){
 		//Error_Handler();
 	}
 }
+
+void CAN_Transmit2(CanIdData_t *can_vector, uint32_t id){
+
+	hcan.pTxMsg->StdId = id; //Specifies the standard identifier
+//	for(uint8_t i=0; i < hcan.pTxMsg->DLC; i++)
+	hcan.pTxMsg->Data[0] = can_vector[id].word_0;
+	hcan.pTxMsg->Data[1] = can_vector[id].word_0 << 8;
+	hcan.pTxMsg->Data[2] = can_vector[id].word_1;
+	hcan.pTxMsg->Data[3] = can_vector[id].word_1 << 8;
+	hcan.pTxMsg->Data[4] = can_vector[id].word_2;
+	hcan.pTxMsg->Data[5] = can_vector[id].word_2 << 8;
+	hcan.pTxMsg->Data[6] = can_vector[id].word_3;
+	hcan.pTxMsg->Data[7] = can_vector[id].word_3 << 8;
+	/*Start the Transmission process:*/
+	HAL_StatusTypeDef trans_status = HAL_CAN_Transmit_IT(&hcan);
+
+	//Error handler
+	if (trans_status != HAL_OK)
+	{
+		//Error_Handler();
+	}
+}
+
+
 
 /**
   * @brief  Initializes a Rx Message.

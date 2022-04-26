@@ -25,13 +25,7 @@
 
 /* TADs */
 
-/* CAN message struct */
-typedef struct{
-  uint16_t word_0;
-  uint16_t word_1;
-  uint16_t word_2;
-  uint16_t word_3;
-}CanIdData_t;
+
 
 /* Timer struct */
 typedef struct{
