@@ -34,15 +34,6 @@ uint8_t vet_aux[128];
 
 void interfaceInit(void)
 {
-  /* UART DMA Init */
-  USART_DMA_Init(&huart2, &hdma_usart2_rx);
-  USART_DMA_Init(&huart3, &hdma_usart3_rx);
-
-  /* CAN Init */
-  CAN_Config_Filter();
-  CAN_Config_Frames();
-  CAN_Receive_IT();
-
   /* can data vector init */
   for(uint16_t i = 0; i < CAN_IDS_NUMBER; i++){
     can_vector[i].word_0 = 0;
@@ -51,14 +42,9 @@ void interfaceInit(void)
     can_vector[i].word_3 = 0;
   }
 
-	blinkLed1();
-	blinkLed2();
-	blinkLed3();
-
   //xbeeInit(BYTES_API);
 
   /* Requesting real time */
-  HAL_Delay(1000);
   //realClockRequest(); /* 2s Delay */
 
   /* Nextion Init */
@@ -88,7 +74,6 @@ void UART_Print_Debug(char* format, ...)
 void canMessageReceived(uint16_t id, uint8_t* data)
 {
 	if(id > CAN_IDS_NUMBER - 1)	return;
-  blinkLed1();
   uint16_t* data_word = (uint16_t*)data;
   can_vector[id].word_0 = data_word[0];
   can_vector[id].word_1 = data_word[1];
