@@ -106,3 +106,16 @@ void debugFunction(void)
   // auxiliar++;
   // if(auxiliar == 100) auxiliar = 0;
 }
+
+//timer_handler - BMS
+
+uint8_t timer_wait_ms(uint32_t timer_start, uint32_t delay) {
+    const uint32_t current_time = HAL_GetTick();
+    if ((current_time - timer_start) >= delay) {
+        return 1;
+    }
+    return 0;
+}
+void timer_restart(uint32_t* timer_to_restart) {
+    *timer_to_restart = HAL_GetTick();
+}

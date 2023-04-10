@@ -6,13 +6,12 @@
 #define true 1
 #define false 0
 #define DISPLAY_CURRENT_PAGE_COMMAND 0x66
-
 /*Extern variables*/
 extern CanIdData_t can_vector[CAN_IDS_NUMBER];
 extern uint8_t uart_user_message[DMA_RX_BUFFER_SIZE]; /* Buffer received for user access */
 
 /* Nextion Variables */
-NextionPage_e actual_page = PAGE0;
+static NextionPage_e actual_page = PAGE0;
 NextionPage_e previous_page = PAGE0;
 NextionAdvice_e actual_advice = NO_ADVICE;
 uint8_t _flag_information_to_send = 0;
@@ -51,22 +50,22 @@ void uart3MessageReceived(void) {
 }
 
 void nextionLoop(void) {
+	if (timer_wait_ms(updateTimer, 500)) {
+		if (actual_page != aux) {
+			actual_page = aux;
+			NexPageShow(actual_page);
+		}
 
-	if (actual_page != aux) {
-		actual_page = aux;
-		NexPageShow(actual_page);
-	}
+		if (can_vector[1].word_3 == 0 && botao == 0) {
+			botao++;
+			if (actual_page == PAGE3)
+				aux = PAGE0;
+			else
+				aux++;
+		} else if (can_vector[1].word_3 != 0 && botao != 0)
+			botao = 0;
 
-	if (can_vector[1].word_3 == 0 && botao == 0) {
-		botao++;
-		if (actual_page == PAGE3)
-			aux = PAGE0;
-		else
-			aux++;
-	} else if (can_vector[1].word_3 != 0 && botao != 0)
-		botao = 0;
-
-	if (can_vector[1].word_2 == 0 && botao1 == 0) {
+		if (can_vector[1].word_2 == 0 && botao1 == 0) {
 			botao1++;
 			if (flag == 5)
 				flag = 0;
@@ -75,46 +74,40 @@ void nextionLoop(void) {
 		} else if (can_vector[1].word_2 != 0 && botao1 != 0)
 			botao1 = 0;
 
-	switch (actual_page) {
-	case PAGE0:
+		switch (actual_page) {
+		case PAGE0:
 
-		break;
+			break;
 
-	case PAGE1:
+		case PAGE1:
 
-		NexNumberSetValue(0, 66);
-		NexNumberSetValue(1, 155);
-		NexNumberSetValue(2, can_vector[1].word_1);
-		NexXfloatSetValue(0, 1648);
-		NexXfloatSetValue(1, 265);
-		NexXfloatSetValue(2, 418);
-		NexTextSetText(0, "Aceleracao");
-		NexTextSetText(1, "3/4");
-        NexPictureSetPic(1, 43 +  flag);
-		break;
+			NexNumberSetValue(0, 66);
+			NexNumberSetValue(1, 155);
+			NexNumberSetValue(2, can_vector[1].word_1);
+			NexXfloatSetValue(0, 1648);
+			NexXfloatSetValue(1, 265);
+			NexXfloatSetValue(2, 418);
+			NexTextSetText(0, "Aceleracao");
+			NexTextSetText(1, "3/4");
+			NexPictureSetPic(1, 43 + flag);
+			break;
 
-	case PAGE2:
+		case PAGE2:
 
-		break;
+			break;
 
-	case PAGE3:
+		case PAGE3:
 
-		break;
+			break;
 
-	case PAGE4:
+		case PAGE4:
 
-		break;
+			break;
+		}
 	}
+	timer_restart(&updateTimer);
 }
 
 void nextionTestLoop(void) {
 	return;
-}
-
-uint8_t timer_wait_ms(uint32_t timer_start, uint32_t delay) {
-	const uint32_t current_time = HAL_GetTick();
-	if ((current_time - timer_start) >= delay) {
-		return true;
-	}
-	return false;
 }
