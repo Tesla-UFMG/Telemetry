@@ -51,4 +51,8 @@ void blinkLed3(void);
 void timerAtualization(void);
 void debugFunction(void);
 
+//timer_handler - BMS
+uint8_t timer_wait_ms(uint32_t timer_start, uint32_t delay);
+void timer_restart(uint32_t* timer_to_restart);
+
 #endif  /* INTERFACE_MASTER_H_ */

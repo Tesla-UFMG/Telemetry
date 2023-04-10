@@ -18,7 +18,7 @@ typedef enum {
     PAGE3,
     PAGE4,
     PAGE5
-}NextionPage_e;
+} NextionPage_e;
 
 /* Nextion Advise Enum */
 typedef enum {
