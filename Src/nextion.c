@@ -30,7 +30,6 @@ void sendCommand(const char* cmd)
    {
       huart3.Instance->DR;
    }
-
    HAL_UART_Transmit (&huart3, (uint8_t*) cmd, strlen (cmd), 50);
    HAL_UART_Transmit (&huart3, (uint8_t*)&ENDTERMS, 3, 50);
 }
@@ -112,9 +111,10 @@ int nexInit(void)
    sendCommand ("");
    sendCommand ("bkcmd=1");
    ret1=recvRetCommandFinished  ()  ;
-   sendCommand ("page 0");
-   ret2=recvRetCommandFinished  ()  ;
-   return ret1&&ret2;
+//   sendCommand ("page 0");
+//   ret2=recvRetCommandFinished  ()  ;
+//   return ret1&&ret2;
+   return ret1;
 }
 
 int NexPageShow(int Page)

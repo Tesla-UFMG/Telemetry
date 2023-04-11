@@ -10,7 +10,6 @@
  */
 
 #include <Interface_Master.h>
-
 /*Timers variables*/
 Timer_t packTimer;
 uint32_t actualTimer;
@@ -28,12 +27,11 @@ extern DMA_HandleTypeDef hdma_usart3_rx;
 /* Auxiliar Variables */
 int auxiliar = 0;
 uint8_t vet_aux[128];
-
-
 /* Functions */
 
 void interfaceInit(void)
 {
+  USART_DMA_Init(&huart3, &hdma_usart3_rx);
   /* can data vector init */
   for(uint16_t i = 0; i < CAN_IDS_NUMBER; i++){
     can_vector[i].word_0 = 0;
@@ -49,7 +47,7 @@ void interfaceInit(void)
 
   /* Nextion Init */
   nexInit();
-
+  nextion_init_can();
   /* Global timer variables init */
   packTimer.previous = HAL_GetTick();
   packTimer.interval = 1000;
