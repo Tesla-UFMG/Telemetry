@@ -3,30 +3,35 @@
 
 /*Defines*/
 #define bool uint8_t
-#define true 1
-#define false 0
 #define DISPLAY_CURRENT_PAGE_COMMAND 0x66
+#define BOTAO_STATE HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6)
+
 /*Extern variables*/
 extern CanIdData_t can_vector[CAN_IDS_NUMBER];
 extern uint8_t uart_user_message[DMA_RX_BUFFER_SIZE]; /* Buffer received for user access */
 
 /* Nextion Variables */
-static NextionPage_e actual_page = PAGE0;
-NextionPage_e previous_page = PAGE0;
-NextionAdvice_e actual_advice = NO_ADVICE;
-uint8_t _flag_information_to_send = 0;
-volatile static bool pageMessageReceived;
-static uint32_t pageTimeout;
+NextionPage_e actual_page = PAGE0;
+uint8_t pageMessageReceived;
+uint32_t pageTimeout;
 static uint32_t updateTimer;
-uint32_t actual_timer;
 
+uint8_t VELOCIDADE = 66;
+uint16_t TORQUE = 155;
+uint8_t CARGA = 56;
+uint16_t TENSAO = 1648;
+uint16_t HODOM = 265;
+uint16_t TEMPERATURA = 418;
+char MODO[10] = "SkidPad";
+char BRAKE[5] = "3/4";
+uint8_t STATEOF_CAN = 0;
 /* Variables to nextion test loop */
-uint8_t flag = 0;
-uint32_t actual_timer;
-uint32_t previous_timer;
-uint8_t aux = 0;
+uint8_t FLAG_ERRO = 0;
+uint8_t PAGE = 0;
+uint8_t last_state = 0;
 uint8_t botao = 0;
-uint8_t botao1 = 0;
+uint8_t CAN_STATE = 0;
+
 
 /* Pages and informations:
  Page 0: GIF Init page
@@ -40,39 +45,53 @@ uint8_t botao1 = 0;
 
 void uart3MessageReceived(void) {
 
-	blinkLed3();
-	timerAtualization();
+//	blinkLed3();
 	/* If the message is to change the nextion page */
 	if (uart_user_message[0] == DISPLAY_CURRENT_PAGE_COMMAND) {
 		pageMessageReceived = 1;
 		actual_page = (NextionPage_e) uart_user_message[1];
 	}
 }
+void nextion_init_can() {
+	pageMessageReceived = 0;
+	timer_restart(&pageTimeout);
 
+	while (!pageMessageReceived) {
+		sendCommand("sendme");
+		if (timer_wait_ms(pageTimeout, 300)) {
+			pageMessageReceived = 0;
+		}
+	}
+
+	CAN_STATE = 0;
+	PAGE = actual_page;
+}
 void nextionLoop(void) {
-	if (timer_wait_ms(updateTimer, 500)) {
-		if (actual_page != aux) {
-			actual_page = aux;
-			NexPageShow(actual_page);
+	if (timer_wait_ms(updateTimer, 50)) {
+
+		pageMessageReceived = 0;
+		timer_restart(&pageTimeout);
+		sendCommand("sendme");
+
+		while (!pageMessageReceived) {
+			if (timer_wait_ms(pageTimeout, 50)) {
+				pageMessageReceived = 0;
+				return;
+			}
 		}
 
-		if (can_vector[1].word_3 == 0 && botao == 0) {
-			botao++;
-			if (actual_page == PAGE3)
-				aux = PAGE0;
-			else
-				aux++;
-		} else if (can_vector[1].word_3 != 0 && botao != 0)
-			botao = 0;
+		if (actual_page != PAGE) {
+			NexPageShow(PAGE);
+		}
 
-		if (can_vector[1].word_2 == 0 && botao1 == 0) {
-			botao1++;
-			if (flag == 5)
-				flag = 0;
+		if (BOTAO_STATE == 0 && last_state == 0) {
+			last_state++;
+			if (PAGE == PAGE3)
+				PAGE = PAGE0;
 			else
-				flag++;
-		} else if (can_vector[1].word_2 != 0 && botao1 != 0)
-			botao1 = 0;
+				PAGE++;
+		} else if (BOTAO_STATE != 0 && last_state != 0)
+			last_state = 0;
 
 		switch (actual_page) {
 		case PAGE0:
@@ -80,16 +99,19 @@ void nextionLoop(void) {
 			break;
 
 		case PAGE1:
-
-			NexNumberSetValue(0, 66);
-			NexNumberSetValue(1, 155);
-			NexNumberSetValue(2, can_vector[1].word_1);
-			NexXfloatSetValue(0, 1648);
-			NexXfloatSetValue(1, 265);
-			NexXfloatSetValue(2, 418);
-			NexTextSetText(0, "Aceleracao");
-			NexTextSetText(1, "3/4");
-			NexPictureSetPic(1, 43 + flag);
+            if (CAN_STATE)
+            {
+			NexNumberSetValue(0, VELOCIDADE);
+			NexNumberSetValue(1, TORQUE);
+			NexNumberSetValue(2, CARGA);
+			NexXfloatSetValue(0, TENSAO);
+			NexXfloatSetValue(1, HODOM);
+			NexXfloatSetValue(2, TEMPERATURA);
+			NexTextSetText(0, MODO);
+			NexTextSetText(1, BRAKE);
+			NexPictureSetPic(1, 50 + FLAG_ERRO);
+            }
+			NexVariableSetValue(1, !CAN_STATE);
 			break;
 
 		case PAGE2:
@@ -106,8 +128,4 @@ void nextionLoop(void) {
 		}
 	}
 	timer_restart(&updateTimer);
-}
-
-void nextionTestLoop(void) {
-	return;
 }

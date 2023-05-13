@@ -52,7 +52,8 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+extern HAL_StatusTypeDef UART_STATUS;
+uint8_t botao_gpio;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,7 +105,6 @@ int main(void)
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   interfaceInit();
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -177,9 +177,6 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-	while(1)
-	{
-	}
   /* USER CODE END Error_Handler_Debug */
 }
 

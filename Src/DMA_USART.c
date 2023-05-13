@@ -9,13 +9,14 @@
 
 uint8_t uart_user_message[DMA_RX_BUFFER_SIZE];	/* Buffer received for user access */
 uint8_t DMA_RX_Buffer[DMA_RX_BUFFER_SIZE];	/* Local DMA buffer for circular DMA */
-
+HAL_StatusTypeDef UART_STATUS;
 void USART_DMA_Init(UART_HandleTypeDef *huart, DMA_HandleTypeDef *hdma)
 {
 	__HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);   // enable idle line interrupt
 	__HAL_DMA_ENABLE_IT(hdma, DMA_IT_TC);  // enable DMA Tx cplt interrupt
 	__HAL_DMA_DISABLE_IT(hdma, DMA_IT_HT); 	// discable half complete interrupt
-	HAL_UART_Receive_DMA(huart, DMA_RX_Buffer, DMA_RX_BUFFER_SIZE);
+	UART_STATUS = HAL_UART_Receive_DMA(huart, DMA_RX_Buffer, DMA_RX_BUFFER_SIZE);
+
 }
 
 void USART_IrqHandler (UART_HandleTypeDef *huart, DMA_HandleTypeDef *hdma)

@@ -42,6 +42,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 uint32_t timer_actual = 0;
+extern uint32_t timer_actual_uart;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -51,10 +52,12 @@ uint32_t timer_actual = 0;
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+extern int NexVariableSetValue(int Variable, int value);
 extern void canMessageReceived(uint16_t id, uint8_t *data);
 extern void CAN_Receive_IT();
 extern void uart2MessageReceived(void);
 extern void uart3MessageReceived(void);
+extern void blinkLed3(void);
 extern void USART_IrqHandler(UART_HandleTypeDef *huart, DMA_HandleTypeDef *hdma);
 extern void DMA_IrqHandler(DMA_HandleTypeDef *hdma, UART_HandleTypeDef *huart);
 
@@ -74,6 +77,8 @@ extern CAN_RxHeaderTypeDef RxHeader;
 extern uint8_t TxData[8];
 extern uint8_t RxData[8];
 extern uint32_t TxMailbox;
+extern uint8_t CAN_STATE;
+extern uint8_t FLAG_ERRO;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -237,7 +242,6 @@ void DMA1_Channel6_IRQHandler(void)
   /* USER CODE END DMA1_Channel6_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart2_rx);
   /* USER CODE BEGIN DMA1_Channel6_IRQn 1 */
-	DMA_IrqHandler(&hdma_usart2_rx, &huart2);
 
   /* USER CODE END DMA1_Channel6_IRQn 1 */
 }
@@ -256,9 +260,17 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 		HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
 		timer_actual = HAL_GetTick();
 	}
+
+	if (CAN_STATE == 0) {
+		CAN_STATE = 1;
+		FLAG_ERRO = 0;
+	}
 	HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &RxHeader, RxData);
 	canMessageReceived(RxHeader.StdId, RxData);
-	HAL_IWDG_Refresh(&hiwdg);
+	if (HAL_GetTick() - timer_actual_uart < 500) {
+		HAL_IWDG_Refresh(&hiwdg);
+	}
+
   /* USER CODE END USB_LP_CAN1_RX0_IRQn 1 */
 }
 
@@ -287,7 +299,7 @@ void USART2_IRQHandler(void)
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
 	USART_IrqHandler(&huart2, &hdma_usart2_rx);
-	//uart2MessageReceived();
+	uart2MessageReceived();
 
   /* USER CODE END USART2_IRQn 1 */
 }

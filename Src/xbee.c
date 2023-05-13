@@ -16,10 +16,10 @@ uint8_t xbeeApiModeSend(char *xbeeBuffer, int buff_size) {
 	const char api_start = '\x7E';
 	const char api_frame_type = '\x10';
 	const char api_frame_id = '\x00'; /* No response is requested */
-	const char api_dest_address_64b[9] = "\x00\x13\xA2\x00\x41\x93\x2D\xE3";
+	const char api_dest_address_64b[9] = "\x00\x00\x00\x00\x00\x00\xFF\xFF";
 	const char api_dest_address_16b[3] = "\x00\x00";
 	const char api_broad_radius = '\x00';
-	const char api_options = '\x00';
+	const char api_options = '\x40';
 	int checksum;
 	int length;
 
@@ -43,6 +43,9 @@ uint8_t xbeeApiModeSend(char *xbeeBuffer, int buff_size) {
 	checksum = checksum & 0xFF; /*keep only the lowest 8 bits*/
 	checksum = 255 - checksum; /*Negate it and get checksum*/
 
+
+	/*Send message to ID 0013A20041932DE3*/
+
 	HAL_UART_Transmit(&huart2, &api_start, 1, 100); /*Send 'start*/
 	length_0 = 0xFF00 & length;
 	HAL_UART_Transmit(&huart2, &(length_0), 1, 100); /*Send 'length' first byte*/
@@ -56,6 +59,9 @@ uint8_t xbeeApiModeSend(char *xbeeBuffer, int buff_size) {
 	HAL_UART_Transmit(&huart2, &api_options, 1, 100); /*Send 'options'*/
 	HAL_UART_Transmit(&huart2, xbeeBuffer, buff_size, 100); /*Send the message*/
 	HAL_UART_Transmit(&huart2, &checksum, 1, 100); /*Send 'checksum'*/
+
+	/*Reflesh the whatchDog*/
+
 	if (HAL_GetTick() - timer_actual_uart > 60) {
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 		timer_actual_uart = HAL_GetTick();
@@ -93,50 +99,6 @@ uint8_t xbeeApiModeSend(char *xbeeBuffer, int buff_size) {
 //    }
 //}
 
-//uint8_t xbeeApiModeSend(uint8_t *buff_message, uint16_t buff_size)
-//{
-//    /*Send chars through UART (Max 255 chars)*/
-//
-//    /*Aux variables*/
-//    uint16_t i = 0;
-//    uint16_t checksum = 0;
-//    uint16_t length = 0;
-//    uint8_t api_buffer[256];
-//
-//    /*If the buff size is larger than 255, return 'fail'*/
-//    if (buff_size > 255)  return 0;
-//    length = buff_size + 14; /* Number of bytes between length and checksum fields */
-//
-//    /* Creating the buffer to send with API Frame */
-//    api_buffer[0] = '\x7E'; /* Start Delimiter */
-//
-//    api_buffer[1] = length >> 8;    /* Highest 8 bits of length */
-//    api_buffer[2] = 0xFF & length;  /* Lowest 8 bits of length */
-//
-//    api_buffer[3] = '\x10';    /* Frame Type = 0x10 = "Transmit Request" */
-//    api_buffer[4] = '\x01';    /* Frame ID */
-//
-//    memcpy(api_buffer + 5, "\x00\x13\xA2\x00\x41\x93\x2D\xE3", 8);  /* 64-bit dest. address */
-//    memcpy(api_buffer + 13, "\x00\x00", 2); /* 16-bit dest. address */
-//
-//    api_buffer[15] = '\x00';   /* Broadcast Radius */
-//    api_buffer[16] = '\x00';   /* Options */
-//
-//    memcpy(api_buffer + 17, buff_message, buff_size); /* RF Data */
-//
-//    /* Checksum calc */
-//    checksum = previous_checksum;
-//    for(i = 17; i < buff_size + 1; i++) checksum += api_buffer[i];
-//
-//
-//    checksum = checksum & 0xFF; /* keep only the lowest 8 bits */
-//    checksum = 0xFF - checksum;  /* Negate it and get checksum */
-//    api_buffer[18 + buff_size] = checksum;
-//
-//    HAL_UART_Transmit (&huart2, api_buffer, length + 4, 1000); /*Send 'checksum'*/
-//
-//    return 1;  /*Return 'success'*/
-//}
 
 void xbeeSend(int id, ...) {
 	va_list args;

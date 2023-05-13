@@ -7,6 +7,8 @@ extern UART_HandleTypeDef huart2;
 extern Timer_t packTimer;
 extern uint32_t actualTimer;
 extern SendMode_e mode;
+extern uint8_t FLAG_ERRO;
+uint16_t api_length = 0;
 
 /* Telemetry variables */
 uint8_t _real_clock_received = 0;
@@ -31,95 +33,70 @@ void uart2MessageReceived(void)
   uint16_t checksum = 0;
   uint8_t return_status = 0;
   const uint8_t* ping_request = "ping";
-  uint16_t api_length;
-  
+
+
   if(uart_user_message[3] != 0x90)  return; /* If the message received != "Receive Packet" */
 
   return_status = compareString(uart_user_message + 15, ping_request, 4); /* Comparing if the received message is the xbee ping request */
   if(return_status) return;
 
-  blinkLed2();
-
-  //if(_real_clock_received)  return;
 
   switch (mode)
   {
   case BYTES_API:
-
+	blinkLed3();
     api_length = uart_user_message[1] << 8;
     api_length += uart_user_message[2];
     if(api_length > 255)  return; /* If api message length > DMA_RX_BUFFER_SIZE */
 
-    for(uint16_t i = 3; i < (api_length + 4); i++)  checksum += uart_user_message[i];
+    FLAG_ERRO = uart_user_message[15];
 
-    if(checksum & 0xFF == 0xFF)
-    {
-      //UART_Print_Debug("\r\n");
-      //UART_Print_Debug("Mensagem Recebida:\n\r");
-      //for(uint8_t i = 3; i < api_length + 4; i++)	UART_Print_Debug("%u\n", uart_user_message[i]);
-      //UART_Print_Debug("\r\n");
 
-      can_vector[10].word_0 = uart_user_message[15] << 8;
-      can_vector[10].word_0 = uart_user_message[16];
-
-      can_vector[10].word_1 = uart_user_message[17] << 8;
-      can_vector[10].word_1 = uart_user_message[18];
-
-      can_vector[10].word_2 = uart_user_message[19] << 8;
-      can_vector[10].word_2 = uart_user_message[20];
-
-      can_vector[10].word_3 = uart_user_message[21] << 8;
-      can_vector[10].word_3 = uart_user_message[22];
-      
-      _real_clock_received = 1;
-      can_vector[10].word_1 = _real_clock_received;
-      //UART_Print_Debug("_realclock received na interrupção\n\r");
-    }
     break;
-  
+
   default:
     break;
   }
 }
-
-void realClockRequest(void)
-{
-  uint8_t can_vet_tx[8];
-
-  /* 1) Global variables Init */
-  can_vector[10].word_0 = 1;
-  can_vector[10].word_1 = 0;
-  can_vector[10].word_2 = 0;
-  can_vector[10].word_3 = 0;
-
-  /* 2) Sending clock request */
-  for(uint8_t i = 0; i < 41; i++){
-
-    blinkLed1();
-    blinkLed2();
-    blinkLed3();
-    HAL_Delay(50);
-    
-    if(_real_clock_received == 1){
-     UART_Print_Debug("_realclock received, por isso to saindo da requisição\n\r");
-     UART_Print_Debug("Número de tentativas = %u\n\r", i);
-    }
-    else{
-      xbeeSend(10, BYTES_API, can_vector[REAL_CLK_CAN_ID].word_0, can_vector[10].word_1, can_vector[10].word_2, can_vector[10].word_3);
-    }
-  }
-
-  /* Sending the real clock in can bus */
-  can_vet_tx[0] = can_vector[REAL_CLK_CAN_ID].word_0;
-  can_vet_tx[1] = can_vector[REAL_CLK_CAN_ID].word_0 >> 8;
-  can_vet_tx[2] = can_vector[REAL_CLK_CAN_ID].word_1;
-  can_vet_tx[3] = can_vector[REAL_CLK_CAN_ID].word_1 >> 8;
-  can_vet_tx[4] = can_vector[REAL_CLK_CAN_ID].word_2;
-  can_vet_tx[5] = can_vector[REAL_CLK_CAN_ID].word_2 >> 8;
-  can_vet_tx[6] = can_vector[REAL_CLK_CAN_ID].word_3;
-  can_vet_tx[7] = can_vector[REAL_CLK_CAN_ID].word_3 >> 8;
-  CAN_Transmit(can_vet_tx, REAL_CLK_CAN_ID);
-}
+//
+//void realClockRequest(void)
+//{
+//  uint8_t can_vet_tx[8];
+//
+//  /* 1) Global variables Init */
+//  can_vector[10].word_0 = 1;
+//  can_vector[10].word_1 = 0;
+//  can_vector[10].word_2 = 0;
+//  can_vector[10].word_3 = 0;
+//
+//  /* 2) Sending clock request */
+//  for(uint8_t i = 0; i < 41; i++){
+//
+//    blinkLed1();
+//    blinkLed2();
+//    blinkLed3();
+//    HAL_Delay(50);
+//
+//    if(_real_clock_received == 1){
+//     UART_Print_Debug("_realclock received, por isso to saindo da requisição\n\r");
+//     UART_Print_Debug("Número de tentativas = %u\n\r", i);
+//    }
+//    else{
+//      xbeeSend(10, BYTES_API, can_vector[REAL_CLK_CAN_ID].word_0, can_vector[10].word_1, can_vector[10].word_2, can_vector[10].word_3);
+//    }
+//  }
+//
+//  /* Sending the real clock in can bus */
+//  can_vet_tx[0] = can_vector[REAL_CLK_CAN_ID].word_0;
+//  can_vet_tx[1] = can_vector[REAL_CLK_CAN_ID].word_0 >> 8;
+//  can_vet_tx[2] = can_vector[REAL_CLK_CAN_ID].word_1;
+//  can_vet_tx[3] = can_vector[REAL_CLK_CAN_ID].word_1 >> 8;
+//  can_vet_tx[4] = can_vector[REAL_CLK_CAN_ID].word_2;
+//  can_vet_tx[5] = can_vector[REAL_CLK_CAN_ID].word_2 >> 8;
+//  can_vet_tx[6] = can_vector[REAL_CLK_CAN_ID].word_3;
+//  can_vet_tx[7] = can_vector[REAL_CLK_CAN_ID].word_3 >> 8;
+//  CAN_Transmit(can_vet_tx, REAL_CLK_CAN_ID);
+//}
 
 void xbeePacks(void)
 {
