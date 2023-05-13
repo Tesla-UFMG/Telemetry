@@ -16,12 +16,22 @@ uint8_t pageMessageReceived;
 uint32_t pageTimeout;
 static uint32_t updateTimer;
 
+uint8_t VELOCIDADE = 66;
+uint16_t TORQUE = 155;
+uint8_t CARGA = 56;
+uint16_t TENSAO = 1648;
+uint16_t HODOM = 265;
+uint16_t TEMPERATURA = 418;
+char MODO[10] = "SkidPad";
+char BRAKE[5] = "3/4";
+uint8_t STATEOF_CAN = 0;
 /* Variables to nextion test loop */
 uint8_t FLAG_ERRO = 0;
 uint8_t PAGE = 0;
 uint8_t last_state = 0;
 uint8_t botao = 0;
 uint8_t CAN_STATE = 0;
+
 
 /* Pages and informations:
  Page 0: GIF Init page
@@ -35,7 +45,7 @@ uint8_t CAN_STATE = 0;
 
 void uart3MessageReceived(void) {
 
-	blinkLed3();
+//	blinkLed3();
 	/* If the message is to change the nextion page */
 	if (uart_user_message[0] == DISPLAY_CURRENT_PAGE_COMMAND) {
 		pageMessageReceived = 1;
@@ -83,15 +93,6 @@ void nextionLoop(void) {
 		} else if (BOTAO_STATE != 0 && last_state != 0)
 			last_state = 0;
 
-		if (can_vector[1].word_2 == 0 && botao == 0) {
-			botao++;
-			if (FLAG_ERRO == 5)
-				FLAG_ERRO = 0;
-			else
-				FLAG_ERRO++;
-		} else if (can_vector[1].word_2 != 0 && botao != 0)
-			botao = 0;
-
 		switch (actual_page) {
 		case PAGE0:
 
@@ -100,14 +101,14 @@ void nextionLoop(void) {
 		case PAGE1:
             if (CAN_STATE)
             {
-			NexNumberSetValue(0, 66);
-			NexNumberSetValue(1, 155);
-			NexNumberSetValue(2, can_vector[1].word_1);
-			NexXfloatSetValue(0, 1648);
-			NexXfloatSetValue(1, 265);
-			NexXfloatSetValue(2, 418);
-			NexTextSetText(0, "Modo turbo");
-			NexTextSetText(1, "3/4");
+			NexNumberSetValue(0, VELOCIDADE);
+			NexNumberSetValue(1, TORQUE);
+			NexNumberSetValue(2, CARGA);
+			NexXfloatSetValue(0, TENSAO);
+			NexXfloatSetValue(1, HODOM);
+			NexXfloatSetValue(2, TEMPERATURA);
+			NexTextSetText(0, MODO);
+			NexTextSetText(1, BRAKE);
 			NexPictureSetPic(1, 50 + FLAG_ERRO);
             }
 			NexVariableSetValue(1, !CAN_STATE);

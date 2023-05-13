@@ -32,6 +32,7 @@ uint8_t vet_aux[128];
 void interfaceInit(void)
 {
   USART_DMA_Init(&huart3, &hdma_usart3_rx);
+  USART_DMA_Init(&huart2, &hdma_usart2_rx);
   /* can data vector init */
   for(uint16_t i = 0; i < CAN_IDS_NUMBER; i++){
     can_vector[i].word_0 = 0;
