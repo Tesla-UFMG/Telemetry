@@ -1,64 +1,79 @@
 /*
- * DMA_USART.c
+ *      Comunicação UART via DMA - DMA_USART.c
  *
- *  Created on: 28 de ago de 2019
- *      Author: Guilherme Amorim
+ *      Data: 27 de julho, 2023
+ *      Autor: Gabriel Luiz
+ *      Contato: (31) 97136-4334 || gabrielluiz.eletro@gmail.com
+ */
+/*
+ * 		- Links Úteis -
+ *
+ *      DATASHEET:
  */
 
-#include <DMA_USART.h>
+#include "DMA_USART.h"
 
-uint8_t uart_user_message[DMA_RX_BUFFER_SIZE];	/* Buffer received for user access */
-uint8_t DMA_RX_Buffer[DMA_RX_BUFFER_SIZE];	/* Local DMA buffer for circular DMA */
-HAL_StatusTypeDef UART_STATUS;
-void USART_DMA_Init(UART_HandleTypeDef *huart, DMA_HandleTypeDef *hdma)
-{
-	__HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);   // enable idle line interrupt
-	__HAL_DMA_ENABLE_IT(hdma, DMA_IT_TC);  // enable DMA Tx cplt interrupt
-	__HAL_DMA_DISABLE_IT(hdma, DMA_IT_HT); 	// discable half complete interrupt
-	UART_STATUS = HAL_UART_Receive_DMA(huart, DMA_RX_Buffer, DMA_RX_BUFFER_SIZE);
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+/* USER CODE END PD */
 
-}
+/* External variables --------------------------------------------------------*/
+/* USER CODE BEGIN EV */
 
-void USART_IrqHandler (UART_HandleTypeDef *huart, DMA_HandleTypeDef *hdma)
-{
-	if (huart->Instance->SR & UART_FLAG_IDLE)           /* if Idle flag is set */
-	{
-		volatile uint32_t tmp;							/* Must be volatile to prevent optimizations */
-        tmp = huart->Instance->SR;                      /* Read status register */
-        tmp = huart->Instance->DR;                      /* Read data register */
-    	__HAL_DMA_DISABLE(hdma);       					/* Disabling DMA will force transfer complete interrupt if enabled */
-		DMA_IrqHandler(hdma, huart);
+extern UART_HandleTypeDef huart2; /* */
+extern UART_HandleTypeDef huart3; /* */
+
+/* USER CODE END EV */
+
+/* External functions ------------------------------------------------------------*/
+/* USER CODE BEGIN EF */
+
+extern void Error_Handler(); /* */
+extern void USART3_Message_Received();
+/* USER CODE END EF */
+
+/* Private variables --------------------------------------------------------*/
+/* USER CODE BEGIN PV */
+
+uint8_t DMA_RX_Buffer_3[DMA_RX_BUFFER_SIZE]; /* */
+uint8_t DMA_RX_Buffer_2[DMA_RX_BUFFER_SIZE]; /* */
+
+/* USER CODE END PV */
+
+/* Private functions ------------------------------------------------------------*/
+/* USER CODE BEGIN PF */
+
+/**
+ * @brief
+ * @param
+ * @param
+ * @retval ***NONE***
+ */
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
+	/* Prevent unused argument(s) compilation warning */
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
+	if (huart->Instance == USART3) {
+		USART3_Message_Received();
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart3, DMA_RX_Buffer_3,
+				DMA_RX_BUFFER_SIZE);
+	}
+	if (huart->Instance == USART2) {
+		uart2MessageReceived();
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, DMA_RX_Buffer_2,
+				DMA_RX_BUFFER_SIZE);
 	}
 }
 
-void DMA_IrqHandler (DMA_HandleTypeDef *hdma, UART_HandleTypeDef *huart)
-{	
-	uint16_t len;	/* To store UART Messade received len */
-
-	DMA_Base_Registers *regs = (DMA_Base_Registers*)hdma->DmaBaseAddress;
-	
-	if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TC) != RESET)	/* if the source is TC */
-	{
-		/* Clear the transfer complete flag */
-		__HAL_DMA_CLEAR_FLAG(hdma, __HAL_DMA_GET_TC_FLAG_INDEX(hdma));
-
-		/* Clear the uart_user_message buffer */
-		memset(uart_user_message, 0, DMA_RX_BUFFER_SIZE);
-
-		/* Copying the message to uart_user_message buffer	*/
-		len = DMA_RX_BUFFER_SIZE - hdma->Instance->CNDTR;
-		if(len > DMA_RX_BUFFER_SIZE - 1)	return;
-		memcpy(uart_user_message, DMA_RX_Buffer, len);
-
-		/* Uncomment below to transmit the data via uart */
-		//HAL_UART_Transmit(huart, uart_user_message, len, 100);
-		
-		/* Prepare DMA for next transfer */
-        /* Important! DMA stream won't start if all flags are not cleared first */
- 
-        regs->IFCR = 0x3FU << hdma->ChannelIndex; 			/* Clear all interrupts */
-		hdma->Instance->CMAR = (uint32_t)DMA_RX_Buffer;   	/* Set memory address for DMA again */
-        hdma->Instance->CNDTR = DMA_RX_BUFFER_SIZE;    		/* Set number of bytes to receive */
-        hdma->Instance->CCR |= DMA_CCR_EN;            		/* Start DMA transfer */
-	}
+/**
+ * @brief
+ * @param
+ * @param
+ * @retval ***NONE***
+ */
+void USART_Init(void) {
+	HAL_UARTEx_ReceiveToIdle_DMA(&huart3, DMA_RX_Buffer_3, DMA_RX_BUFFER_SIZE);
+	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, DMA_RX_Buffer_2, DMA_RX_BUFFER_SIZE);
 }
+
+/* USER CODE END PF */

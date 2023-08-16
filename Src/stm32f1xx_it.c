@@ -31,7 +31,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,6 +42,9 @@
 /* USER CODE BEGIN PV */
 uint32_t timer_actual = 0;
 extern uint32_t timer_actual_uart;
+extern uint32_t timer_actual_nextion;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -67,6 +69,7 @@ extern void DMA_IrqHandler(DMA_HandleTypeDef *hdma, UART_HandleTypeDef *huart);
 extern CAN_HandleTypeDef hcan;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
+extern DMA_HandleTypeDef hdma_usart3_tx;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 /* USER CODE BEGIN EV */
@@ -78,7 +81,9 @@ extern uint8_t TxData[8];
 extern uint8_t RxData[8];
 extern uint32_t TxMailbox;
 extern uint8_t CAN_STATE;
-extern uint8_t FLAG_ERRO;
+extern int8_t FLAG_POP_UP;
+extern uint8_t previus_MODO_FLAG;
+extern uint8_t MODO_FLAG;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -218,6 +223,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles DMA1 channel2 global interrupt.
+  */
+void DMA1_Channel2_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart3_tx);
+  /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel2_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 channel3 global interrupt.
   */
 void DMA1_Channel3_IRQHandler(void)
@@ -227,7 +246,6 @@ void DMA1_Channel3_IRQHandler(void)
   /* USER CODE END DMA1_Channel3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart3_rx);
   /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
-	DMA_IrqHandler(&hdma_usart3_rx, &huart3);
 
   /* USER CODE END DMA1_Channel3_IRQn 1 */
 }
@@ -263,13 +281,11 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 
 	if (CAN_STATE == 0) {
 		CAN_STATE = 1;
-		FLAG_ERRO = 0;
+		FLAG_POP_UP = 0;
 	}
 	HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &RxHeader, RxData);
 	canMessageReceived(RxHeader.StdId, RxData);
-	if (HAL_GetTick() - timer_actual_uart < 500) {
 		HAL_IWDG_Refresh(&hiwdg);
-	}
 
   /* USER CODE END USB_LP_CAN1_RX0_IRQn 1 */
 }
@@ -289,6 +305,20 @@ void CAN1_RX1_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles EXTI line[9:5] interrupts.
+  */
+void EXTI9_5_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI9_5_IRQn 0 */
+
+  /* USER CODE END EXTI9_5_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
+  /* USER CODE BEGIN EXTI9_5_IRQn 1 */
+
+  /* USER CODE END EXTI9_5_IRQn 1 */
+}
+
+/**
   * @brief This function handles USART2 global interrupt.
   */
 void USART2_IRQHandler(void)
@@ -298,7 +328,7 @@ void USART2_IRQHandler(void)
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
-	USART_IrqHandler(&huart2, &hdma_usart2_rx);
+//	USART_IrqHandler(&huart2, &hdma_usart2_rx);
 	uart2MessageReceived();
 
   /* USER CODE END USART2_IRQn 1 */
@@ -314,8 +344,6 @@ void USART3_IRQHandler(void)
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
-	USART_IrqHandler(&huart3, &hdma_usart3_rx);
-	uart3MessageReceived();
 
   /* USER CODE END USART3_IRQn 1 */
 }

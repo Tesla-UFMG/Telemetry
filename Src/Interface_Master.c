@@ -10,9 +10,12 @@
  */
 
 #include <Interface_Master.h>
+#include "lcd_dash.h"
+#include <stdio.h>
+
 /*Timers variables*/
-Timer_t packTimer;
 uint32_t actualTimer;
+extern uint8_t pageMessageReceived;
 
 /* CAN data struct vector */
 CanIdData_t can_vector[CAN_IDS_NUMBER];
@@ -29,33 +32,19 @@ int auxiliar = 0;
 uint8_t vet_aux[128];
 /* Functions */
 
-void interfaceInit(void)
-{
-  USART_DMA_Init(&huart3, &hdma_usart3_rx);
-  USART_DMA_Init(&huart2, &hdma_usart2_rx);
-  /* can data vector init */
-  for(uint16_t i = 0; i < CAN_IDS_NUMBER; i++){
-    can_vector[i].word_0 = 0;
-    can_vector[i].word_1 = 0;
-    can_vector[i].word_2 = 0;
-    can_vector[i].word_3 = 0;
-  }
+void interfaceInit(void) {
+	HAL_Delay(100);
 
-  //xbeeInit(BYTES_API);
+	USART_Init();
 
-  /* Requesting real time */
-  //realClockRequest(); /* 2s Delay */
+	nexInit();
 
-  /* Nextion Init */
-  nexInit();
-  nextion_init_can();
-  /* Global timer variables init */
-  packTimer.previous = HAL_GetTick();
-  packTimer.interval = 1000;
+	NEXTION_Init();
+
+	/* Global timer variables init */
 }
 
-void UART_Print_Debug(char* format, ...)
-{
+void UART_Print_Debug(char *format, ...) {
 	char buffer[100];
 	uint8_t size = 0;
 	buffer[0] = '\0';
@@ -65,56 +54,51 @@ void UART_Print_Debug(char* format, ...)
 	va_start(argList, format);
 	size = vsprintf(buffer, format, argList);
 
-	HAL_UART_Transmit(&huart1, (uint8_t*)buffer, size, 100);
+	HAL_UART_Transmit(&huart1, (uint8_t*) buffer, size, 100);
 
 	va_end(argList);
 }
 
-void canMessageReceived(uint16_t id, uint8_t* data)
-{
-	if(id > CAN_IDS_NUMBER - 1)	return;
-  uint16_t* data_word = (uint16_t*)data;
-  can_vector[id].word_0 = data_word[0];
-  can_vector[id].word_1 = data_word[1];
-  can_vector[id].word_2 = data_word[2];
-  can_vector[id].word_3 = data_word[3];
+void canMessageReceived(uint16_t id, uint8_t *data) {
+	if (id > CAN_IDS_NUMBER - 1)
+		return;
+	uint16_t *data_word = (uint16_t*) data;
+	can_vector[id].word_0 = data_word[0];
+	can_vector[id].word_1 = data_word[1];
+	can_vector[id].word_2 = data_word[2];
+	can_vector[id].word_3 = data_word[3];
 }
 
-void blinkLed1(void)
-{
+void blinkLed1(void) {
 	HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
 } /* Debug Led 1 */
 
-void blinkLed2(void)
-{
+void blinkLed2(void) {
 	HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
 } /* Debug Led 2 */
 
-void blinkLed3(void)
-{
+void blinkLed3(void) {
 	HAL_GPIO_TogglePin(LED_3_GPIO_Port, LED_3_Pin);
 } /* Debug Led 3 */
 
-void timerAtualization(void)
-{
-  actualTimer = HAL_GetTick();
+void timerAtualization(void) {
+	actualTimer = HAL_GetTick();
 }
 
-void debugFunction(void)
-{ 
-  // auxiliar++;
-  // if(auxiliar == 100) auxiliar = 0;
+void debugFunction(void) {
+	// auxiliar++;
+	// if(auxiliar == 100) auxiliar = 0;
 }
 
 //timer_handler - BMS
 
 uint8_t timer_wait_ms(uint32_t timer_start, uint32_t delay) {
-    const uint32_t current_time = HAL_GetTick();
-    if ((current_time - timer_start) >= delay) {
-        return 1;
-    }
-    return 0;
+	const uint32_t current_time = HAL_GetTick();
+	if ((current_time - timer_start) >= delay) {
+		return 1;
+	}
+	return 0;
 }
-void timer_restart(uint32_t* timer_to_restart) {
-    *timer_to_restart = HAL_GetTick();
+void timer_restart(uint32_t *timer_to_restart) {
+	*timer_to_restart = HAL_GetTick();
 }

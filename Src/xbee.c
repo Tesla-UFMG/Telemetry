@@ -13,13 +13,13 @@ uint32_t timer_actual_uart = 0;
 uint8_t xbeeApiModeSend(char *xbeeBuffer, int buff_size) {
 	/*Send chars through UART (Max 255 chars)*/
 	/*Frame with specified address*/
-	const char api_start = '\x7E';
-	const char api_frame_type = '\x10';
-	const char api_frame_id = '\x00'; /* No response is requested */
-	const char api_dest_address_64b[9] = "\x00\x00\x00\x00\x00\x00\xFF\xFF";
-	const char api_dest_address_16b[3] = "\x00\x00";
-	const char api_broad_radius = '\x00';
-	const char api_options = '\x40';
+	unsigned  char api_start = '\x7E';
+	unsigned char api_frame_type = '\x10';
+	unsigned char api_frame_id = '\x00'; /* No response is requested */
+	unsigned char api_dest_address_64b[9] = "\x00\x00\x00\x00\x00\x00\xFF\xFF";
+	unsigned char api_dest_address_16b[3] = "\x00\x00";
+	unsigned char api_broad_radius = '\x00';
+	unsigned char api_options = '\x40';
 	int checksum;
 	int length;
 
@@ -44,13 +44,13 @@ uint8_t xbeeApiModeSend(char *xbeeBuffer, int buff_size) {
 	checksum = 255 - checksum; /*Negate it and get checksum*/
 
 
-	/*Send message to ID 0013A20041932DE3*/
+	/*Send message to ALL ID's*/
 
 	HAL_UART_Transmit(&huart2, &api_start, 1, 100); /*Send 'start*/
 	length_0 = 0xFF00 & length;
-	HAL_UART_Transmit(&huart2, &(length_0), 1, 100); /*Send 'length' first byte*/
+	HAL_UART_Transmit(&huart2, &length_0, 1, 100); /*Send 'length' first byte*/
 	length_0 = 0xFF & length;
-	HAL_UART_Transmit(&huart2, &(length_0), 1, 100); /*Send 'length' second byte*/
+	HAL_UART_Transmit(&huart2, &length_0, 1, 100); /*Send 'length' second byte*/
 	HAL_UART_Transmit(&huart2, &api_frame_type, 1, 100); /*Send 'freme type'*/
 	HAL_UART_Transmit(&huart2, &api_frame_id, 1, 100); /*Send 'freme id'*/
 	HAL_UART_Transmit(&huart2, api_dest_address_64b, 8, 100); /*Send '64b address'*/
@@ -68,37 +68,6 @@ uint8_t xbeeApiModeSend(char *xbeeBuffer, int buff_size) {
 	}
 	return 1; /*Return 'success'*/
 }
-
-//void xbeeInit(SendMode_e init_mode)
-//{
-////    memset(api_buffer, 0, sizeof(uint8_t)*256);
-//
-//    switch(init_mode)
-//    {
-//        case BYTES_API:
-//            mode = init_mode;
-//            api_buffer[0] = '\x7E'; /* Start Delimiter */
-//            api_buffer[3] = '\x10';    /* Frame Type = 0x10 = "Transmit Request" */
-//            api_buffer[4] = '\x00';    /* Frame ID */
-//            memcpy(api_buffer + 5, "\x00\x13\xA2\x00\x41\x93\x2D\xE3", 8);  /* 64-bit dest. address */
-//            memcpy(api_buffer + 13, "\x00\x00", 2); /* 16-bit dest. address */
-//            api_buffer[15] = '\x00';   /* Broadcast Radius */
-//            api_buffer[16] = '\x00';   /* Options */
-//            for(uint8_t i = 3; i < 17; i++) previous_checksum += api_buffer[i];
-//
-//            break;
-//
-//        case STRING_API:
-//        break;
-//
-//        case BYTES_TRANSPARENT:
-//        break;
-//
-//        case STRING_TRANSPARENT:
-//        	break;
-//    }
-//}
-
 
 void xbeeSend(int id, ...) {
 	va_list args;
@@ -141,5 +110,5 @@ void xbeeSend(int id, ...) {
 		HAL_UART_Transmit(&huart2, xbeeBuffer, 11, 100);
 	}
 
-	HAL_Delay(DELAY_XBEE);
+//	HAL_Delay(DELAY_XBEE);
 }

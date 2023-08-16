@@ -1,71 +1,98 @@
-/*Segurança:
- * 50 a 57
- * 256 a 260*/
+/*
+ * NK523 can network identifiers - ID.h
+ *
+ *      Data: 16 de junho, 2023
+ *      Autor: Leonardo de Sá
+ *		Contato: (31) 98211-8390 || @oleonardodesa
+ *
+ *		link:
+ *		https://docs.google.com/spreadsheets/d/1BHpB2Rvjlr6YgL0pbwQGXt2S_yGD1l4ZwxyoXBlnmko/edit?usp=sharing
+ *
+ *		ID          |   ORIGIN
+ *		0 - 75      |   *NULL*
+ *		76 - 150	|   Control
+ *		151 - 225	|   Data Acquisition
+ *		226 - 300	|   Safety System
+ *		301 - 375	|   Packs BMS
+ *		375 - 400	|   *NULL*
+ */
 
-#define ID_seguranca_tensao_1 50
-#define ID_seguranca_flags 51
-#define ID_seguranca_expansao 52
-#define ID_seguranca_corrente 54
-#define ID_seguranca_SoC 55
-#define ID_seguranca_pack_11 256
-#define ID_seguranca_pack_21 257
-#define ID_seguranca_pack_31 258
-#define ID_seguranca_pack_41 259
-#define ID_seguranca_pack_51 260
-#define ID_seguranca_pack_12 261
-#define ID_seguranca_pack_22 262
-#define ID_seguranca_pack_32 263
-#define ID_seguranca_pack_42 264
-#define ID_seguranca_pack_52 265
-#define ID_seguranca_pack_13 266
-#define ID_seguranca_pack_23 267
-#define ID_seguranca_pack_33 268
-#define ID_seguranca_pack_43 269
-#define ID_seguranca_pack_53 270
-#define ID_seguranca_pack_14 271
-#define ID_seguranca_pack_24 272
-#define ID_seguranca_pack_34 273
-#define ID_seguranca_pack_44 274
-#define ID_seguranca_pack_54 275
+#ifndef INC_ID_H_
+#define INC_ID_H_
 
-/*Controle*/
+/* --- Control --- */
+/* ECU */
+#define ID_control_speed_average 76 //VELOCIDADE >< VOLANTE >< ACELERADOR >< FREIO
+#define ID_control_hodometer 77 //
+#define ID_control_torque_motor 78 //
+#define ID_control_speed_wheel 79 //
+#define ID_control_torque_reduction 80 //
+#define ID_control_braking 81 //
 
-#define ID_controle_flags_1 101
-#define ID_controle_flags_2 102
-#define ID_controle_torque 103
-#define ID_controle_velocidade_motor 104
-#define ID_controle_velocidade_roda 105
-#define ID_controle_corrente 106
-#define ID_controle_temperatura 107
-#define ID_controle_IMU 108
-#define ID_controle_SPEED_POWER 109
-#define ID_controle_ENERGY_OVERLOAD 110
-#define ID_controle_LOST_BUS 111
-#define ID_controle_STATE 112
-#define ID_controle_FAILURE_ALARM 113
-#define ID_controle_acelerometro 291
-#define ID_controle_gyro 292
+/* Left Inversor */
+#define ID_control_speed_l_motor 85 //
+#define ID_control_energy_l_motor 86 //
+#define ID_control_lost_msg_l_motor 87 //
+#define ID_control_state_l_inv 88 //
 
-/*Aquisição de dados*/
+/* Right Inversor */
+#define ID_control_speed_r_motor 95 //
+#define ID_control_energy_r_motor 96 //
+#define ID_control_lost_msg_r_motor 97 //
+#define ID_control_state_r_inv 98 //
 
-#define ID_aquisicao_flags_1 170
-#define ID_aquisicao_extensometros_1 171
-#define ID_aquisicao_MLX_1 156
-#define ID_aquisicao_MLX_2 157
-#define ID_aquisicao_MLX_3 158
-#define ID_aquisicao_MLX_4 159
-#define ID_aquisicao_acelerometro 161
-#define ID_aquisicao_gyro 162
-#define ID_aquisicao_termopar 163
-#define ID_aquisicao_extensometros_2 173
-#define ID_aquisicao_extensometros_3 178
-#define ID_aquisicao_potenciometro 179
-#define ID_aquisicao_teste_data 180
-#define ID_aquisicao_teste_horario 181
-#define ID_aquisicao_teste_flags 182
-#define ID_aquisicao_teste_modos 183
-#define ID_aquisicao_teste_controle 184
-#define ID_aquisicao_teste_pneu 185
-#define ID_aquisicao_teste_pista_aero 186
-#define ID_aquisicao_teste_aero_peso 187
-#define ID_aquisicao_teste_pressao 188
+#define ID_control_accelerometer 291 //
+#define ID_control_gyroscopic 292 //
+/* --------------- */
+
+/* --- Data Acquisition --- */
+/* Telemetry */
+#define ID_acquisition_beacon 151 //
+
+/* Coletora */
+#define ID_acquisition_brake 152 //
+
+/* Melexis */
+#define ID_acquisition_mlx_de 153 //
+#define ID_acquisition_mlx_dd 154 //
+#define ID_acquisition_mlx_te 155 //
+#define ID_acquisition_mlx_td 156 //
+/* --------------- */
+
+/* --- Safety System --- */
+#define ID_safety_voltage 226 //
+#define ID_safety_bms 227 //
+#define ID_safety_current 230 //
+#define ID_safety_charge 231 //
+#define ID_safety_soc 232 //
+
+/* Pack 1 */
+#define ID_safety_pack1_1 301 //
+#define ID_safety_pack1_2 302 //
+#define ID_safety_pack1_3 303 //
+#define ID_safety_pack1_4 304 //
+#define ID_safety_pack1_5 305 //
+
+/* Pack 2 */
+#define ID_safety_pack2_1 306 //
+#define ID_safety_pack2_2 307 //
+#define ID_safety_pack2_3 308 //
+#define ID_safety_pack2_4 309 //
+#define ID_safety_pack2_5 310 //
+
+/* Pack 3 */
+#define ID_safety_pack3_1 311 //
+#define ID_safety_pack3_2 312 //
+#define ID_safety_pack3_3 313 //
+#define ID_safety_pack3_4 314 //
+#define ID_safety_pack3_5 315 //
+
+/* Pack 4 */
+#define ID_safety_pack4_1 316 //
+#define ID_safety_pack4_2 317 //
+#define ID_safety_pack4_3 318 //
+#define ID_safety_pack4_4 319 //
+#define ID_safety_pack4_5 320 //
+/* --------------- */
+
+#endif /* INC_ID_H_ */

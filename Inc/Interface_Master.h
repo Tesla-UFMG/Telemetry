@@ -21,7 +21,6 @@
 
 /* Defines */
 #define CAN_IDS_NUMBER 360
-#define REAL_CLK_CAN_ID 10
 
 /* TADs */
 

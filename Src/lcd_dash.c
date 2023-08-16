@@ -89,8 +89,8 @@ void USART3_Message_Received(void) {
 		actual_page = (NextionPage_e) NEXTION_UART_BUFFER[1];
 	}
 
-	for (uint8_t i = 0; i < DMA_RX_BUFFER_SIZE_NEXTION; i++)
-		NEXTION_UART_BUFFER[i] = 0;
+//	for (uint8_t i = 0; i < DMA_RX_BUFFER_SIZE_NEXTION; i++)
+//		NEXTION_UART_BUFFER[i] = 0;
 }
 
 void NEXTION_BusOff_Verify() {

@@ -10,11 +10,15 @@
 
 #include <Interface_Master.h>
 
+typedef enum {
+	GERAL, CONTROL, PACKS ,PACKS1, PACKS2, PACKS3, PACKS4
+} TelemetryINFO_e;
+
 void uart2MessageReceived(void);
 uint8_t compareString(uint8_t *first, uint8_t *second, uint16_t len);
 void uart2MessageReceived(void);
 void realClockRequest(void);
-void telemetrySend(void);
+void TELEMETRY(void);
 
 
 
