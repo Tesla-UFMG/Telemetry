@@ -2,12 +2,12 @@
 #include "ID.h"
 
 extern CanIdData_t can_vector[CAN_IDS_NUMBER];
-extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
 extern uint32_t actualTimer;
 extern SendMode_e mode;
 extern uint8_t ECU_erro_bin_to_int();
 extern uint8_t BMS_erro_bin_to_int();
-extern uint8_t DMA_RX_Buffer_2[DMA_RX_BUFFER_SIZE];
+extern uint8_t DMA_RX_Buffer_3[DMA_RX_BUFFER_SIZE];
 
 #define _ERRO_CONTROLE ECU_erro_bin_to_int()
 #define _ERRO_INVERSOR can_vector[ID_control_torque_motor].word_1
@@ -54,7 +54,7 @@ void uart2MessageReceived(void) {
 	 Checksum: 0x??
 	 */
 
-	memcpy(XBEE_UART_BUFFER, DMA_RX_Buffer_2, DMA_RX_BUFFER_SIZE_XBEE);
+	memcpy(XBEE_UART_BUFFER, DMA_RX_Buffer_3, DMA_RX_BUFFER_SIZE_XBEE);
 
 	if (XBEE_UART_BUFFER[3] != 0x90)
 		return; /* If the message received != "Receive Packet" */
@@ -109,7 +109,7 @@ void xbeeGERAL(void) {
 			can_vector[ID_safety_voltage].word_1, 0,
 			can_vector[ID_safety_voltage].word_3);
 
-	xbeeSend(ID_safety_bms, 0, _ERRO_SEGURANCA,
+	xbeeSend(ID_safety_bms, can_vector[ID_safety_bms].word_0, _ERRO_SEGURANCA,
 			can_vector[ID_safety_bms].word_2, can_vector[ID_safety_bms].word_3);
 
 	xbeeSend(ID_safety_current, 0, can_vector[ID_safety_current].word_1, 0,
@@ -121,10 +121,12 @@ void xbeeGERAL(void) {
 	xbeeSend(ID_safety_soc, can_vector[ID_safety_soc].word_0, 0, 0, 0);
 
 	xbeeSend(ID_control_speed_l_motor,
-			can_vector[ID_control_speed_l_motor].word_0, 0, 0, 0);
+			can_vector[ID_control_speed_l_motor].word_0,
+			can_vector[ID_control_speed_l_motor].word_1, 0, 0);
 
 	xbeeSend(ID_control_speed_r_motor,
-			can_vector[ID_control_speed_r_motor].word_0, 0, 0, 0);
+			can_vector[ID_control_speed_r_motor].word_0,
+			can_vector[ID_control_speed_r_motor].word_1, 0, 0);
 }
 
 void xbeeCONTROLE(void) {
@@ -134,12 +136,19 @@ void xbeeCONTROLE(void) {
 			can_vector[ID_control_accelerometer].word_1,
 			can_vector[ID_control_accelerometer].word_2, 0);
 
+	xbeeSend(ID_control_gyroscopic,
+				can_vector[ID_control_gyroscopic].word_0,
+				can_vector[ID_control_gyroscopic].word_1,
+				can_vector[ID_control_gyroscopic].word_2, 0);
+
 	xbeeSend(ID_control_speed_average, 0,
 			can_vector[ID_control_speed_average].word_1,
 			can_vector[ID_control_speed_average].word_2,
 			can_vector[ID_control_speed_average].word_3);
 
-	xbeeSend(ID_control_hodometer, 0, 0, 0,
+	xbeeSend(ID_control_hodometer, can_vector[ID_control_hodometer].word_0,
+			can_vector[ID_control_hodometer].word_1,
+			can_vector[ID_control_hodometer].word_2,
 			can_vector[ID_control_hodometer].word_3);
 
 	xbeeSend(ID_control_torque_motor, _ERRO_CONTROLE, _ERRO_INVERSOR, 0, 0);
@@ -148,6 +157,11 @@ void xbeeCONTROLE(void) {
 			can_vector[ID_control_speed_wheel].word_1,
 			can_vector[ID_control_speed_wheel].word_2,
 			can_vector[ID_control_speed_wheel].word_3);
+
+	xbeeSend(ID_acquisition_brake, can_vector[ID_acquisition_brake].word_0,
+				can_vector[ID_acquisition_brake].word_1,
+				can_vector[ID_acquisition_brake].word_2,
+				can_vector[ID_acquisition_brake].word_3);
 }
 
 void TELEMETRY() {

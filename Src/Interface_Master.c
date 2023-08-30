@@ -39,7 +39,7 @@ void interfaceInit(void) {
 
 	nexInit();
 
-	NEXTION_Init();
+//	NEXTION_Init();
 
 	/* Global timer variables init */
 }

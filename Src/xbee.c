@@ -46,19 +46,19 @@ uint8_t xbeeApiModeSend(char *xbeeBuffer, int buff_size) {
 
 	/*Send message to ALL ID's*/
 
-	HAL_UART_Transmit(&huart2, &api_start, 1, 100); /*Send 'start*/
+	HAL_UART_Transmit(&huart3, &api_start, 1, 100); /*Send 'start*/
 	length_0 = 0xFF00 & length;
-	HAL_UART_Transmit(&huart2, &length_0, 1, 100); /*Send 'length' first byte*/
+	HAL_UART_Transmit(&huart3, &length_0, 1, 100); /*Send 'length' first byte*/
 	length_0 = 0xFF & length;
-	HAL_UART_Transmit(&huart2, &length_0, 1, 100); /*Send 'length' second byte*/
-	HAL_UART_Transmit(&huart2, &api_frame_type, 1, 100); /*Send 'freme type'*/
-	HAL_UART_Transmit(&huart2, &api_frame_id, 1, 100); /*Send 'freme id'*/
-	HAL_UART_Transmit(&huart2, api_dest_address_64b, 8, 100); /*Send '64b address'*/
-	HAL_UART_Transmit(&huart2, api_dest_address_16b, 2, 100); /*Send '16b address'*/
-	HAL_UART_Transmit(&huart2, &api_broad_radius, 1, 100); /*Send 'freme type'*/
-	HAL_UART_Transmit(&huart2, &api_options, 1, 100); /*Send 'options'*/
-	HAL_UART_Transmit(&huart2, xbeeBuffer, buff_size, 100); /*Send the message*/
-	HAL_UART_Transmit(&huart2, &checksum, 1, 100); /*Send 'checksum'*/
+	HAL_UART_Transmit(&huart3, &length_0, 1, 100); /*Send 'length' second byte*/
+	HAL_UART_Transmit(&huart3, &api_frame_type, 1, 100); /*Send 'freme type'*/
+	HAL_UART_Transmit(&huart3, &api_frame_id, 1, 100); /*Send 'freme id'*/
+	HAL_UART_Transmit(&huart3, api_dest_address_64b, 8, 100); /*Send '64b address'*/
+	HAL_UART_Transmit(&huart3, api_dest_address_16b, 2, 100); /*Send '16b address'*/
+	HAL_UART_Transmit(&huart3, &api_broad_radius, 1, 100); /*Send 'freme type'*/
+	HAL_UART_Transmit(&huart3, &api_options, 1, 100); /*Send 'options'*/
+	HAL_UART_Transmit(&huart3, xbeeBuffer, buff_size, 100); /*Send the message*/
+	HAL_UART_Transmit(&huart3, &checksum, 1, 100); /*Send 'checksum'*/
 
 	/*Reflesh the whatchDog*/
 
@@ -100,14 +100,14 @@ void xbeeSend(int id, ...) {
 	case STRING_TRANSPARENT:
 		len = sprintf(xbeeBuffer, "%u\t%u\t%u\t%u\t%u\n", id, data_word[0],
 				data_word[1], data_word[2], data_word[3]);
-		HAL_UART_Transmit(&huart2, xbeeBuffer, len, 100);
+		HAL_UART_Transmit(&huart3, xbeeBuffer, len, 100);
 		break;
 
 	case BYTES_TRANSPARENT:
 		memcpy(xbeeBuffer, id, sizeof(uint16_t));
 		memcpy(xbeeBuffer + 2, data_word, sizeof(uint16_t) * 4);
 		memcpy(xbeeBuffer + 10, '\n', 1);
-		HAL_UART_Transmit(&huart2, xbeeBuffer, 11, 100);
+		HAL_UART_Transmit(&huart3, xbeeBuffer, 11, 100);
 	}
 
 //	HAL_Delay(DELAY_XBEE);

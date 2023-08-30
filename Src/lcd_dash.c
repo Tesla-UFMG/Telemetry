@@ -8,6 +8,7 @@
 #include <stm32f1xx_hal_gpio.h>
 #include <string.h>
 #include <sys/_stdint.h>
+#include "COLOR.h"
 
 /*Defines*/
 #define DISPLAY_CURRENT_PAGE_COMMAND 0x66
@@ -17,17 +18,17 @@
 extern CAN_HandleTypeDef hcan;
 extern CanIdData_t can_vector[CAN_IDS_NUMBER];
 
-extern uint8_t DMA_RX_Buffer_3[DMA_RX_BUFFER_SIZE];
+extern uint8_t DMA_RX_Buffer_2[DMA_RX_BUFFER_SIZE];
 
 extern int8_t FLAG_POP_UP;
 extern int8_t FLAG_MSG;
-
 extern void FAILURE_IT();
 
 /* Nextion Variables */
 
 NextionPage_e actual_page = PAGE0;
-NextionPage_e previus_page = PAGE1;
+NextionPage_e previus_page = PAGE0;
+uint8_t previus_page_saved = 0;
 NextionPage_e PAGE = 0;
 uint8_t pageMessageReceived = 0;
 uint8_t NEXTION_UART_BUFFER[DMA_RX_BUFFER_SIZE_NEXTION]; /* Buffer received for user access */
@@ -37,6 +38,7 @@ uint8_t NEXTION_UART_BUFFER[DMA_RX_BUFFER_SIZE_NEXTION]; /* Buffer received for 
 uint32_t updateTimer;
 uint32_t timer_actual_nextion;
 uint32_t pageTimeout = 0;
+uint32_t sendmeTimeout = 0;
 uint32_t botaoTimeout = 0;
 uint32_t modoTimeout = 0;
 
@@ -52,7 +54,7 @@ uint32_t modoTimeout = 0;
 
 char MODO[11];
 char AIR[11];
-char BRAKE[5] = "3/4";
+char BRAKE[5] = "5/8";
 
 /* Variables to nextion test loop */
 uint8_t PAGE_ERRO = 0;
@@ -60,6 +62,7 @@ uint8_t previus_MODO_FLAG = 0;
 uint8_t last_state = 0;
 uint8_t botao = 0;
 uint8_t CAN_STATE = 0;
+uint8_t NEXTION_STATE = 0;
 
 /* Pages and informations:
  Page 0: GIF Init page
@@ -81,29 +84,35 @@ uint8_t RPM_To_KMH_speed() {
 void USART3_Message_Received(void) {
 
 	/*Verify if the message is to change the nextion page */
-	memcpy(NEXTION_UART_BUFFER, DMA_RX_Buffer_3, DMA_RX_BUFFER_SIZE_NEXTION);
+	memcpy(NEXTION_UART_BUFFER, DMA_RX_Buffer_2, DMA_RX_BUFFER_SIZE_NEXTION);
 
 	if (NEXTION_UART_BUFFER[0] == DISPLAY_CURRENT_PAGE_COMMAND) {
-		timer_actual_nextion = HAL_GetTick();
 		pageMessageReceived = 1;
 		actual_page = (NextionPage_e) NEXTION_UART_BUFFER[1];
 	}
-
-//	for (uint8_t i = 0; i < DMA_RX_BUFFER_SIZE_NEXTION; i++)
-//		NEXTION_UART_BUFFER[i] = 0;
+	if (PAGE != actual_page && NEXTION_STATE != 0)
+		NexPageShow(PAGE);
+	timer_actual_nextion = HAL_GetTick();
 }
 
 void NEXTION_BusOff_Verify() {
-	if (HAL_GetTick() - timer_actual_nextion > 2000)
-		HAL_CAN_Stop(&hcan);
+	if (CAN_STATE == 1 && previus_MODO_FLAG == 0) {
+		previus_MODO_FLAG = MODO_FLAG;}
+
+	if (HAL_GetTick() - timer_actual_nextion > 400) {
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, DMA_RX_Buffer_2, DMA_RX_BUFFER_SIZE);}
+
+	if (HAL_GetTick() - timer_actual_nextion > 2000) {
+		HAL_CAN_Stop(&hcan);}
 }
 
 void NEXTION_Init() {
 	pageMessageReceived = 0;
 	sendCommand("sendme");
 
-	if (CAN_STATE == 0)
+	if (CAN_STATE == 0) {
 		NexVariableSetValue(1, !CAN_STATE);
+	}
 
 	timer_restart(&pageTimeout);
 
@@ -116,13 +125,12 @@ void NEXTION_Init() {
 			timer_restart(&pageTimeout);
 		}
 	}
-
-	if (actual_page != PAGE0)
-		if (actual_page != PAGE1)
-			NexPageShow(1);
-
+	if (actual_page != PAGE1 && CAN_STATE == 0)
+		NexPageShow(1);
+	NexPageShow(1);
 	PAGE = actual_page;
 	previus_page = PAGE;
+	NEXTION_STATE++;
 }
 
 void NEXTION(void) {
@@ -132,8 +140,10 @@ void NEXTION(void) {
 	if (timer_wait_ms(updateTimer, 0)) {
 
 		if (can_vector[ID_control_torque_motor].word_1 == 0) {
-			if (MODO_IT() == 1)
+			if (MODO_IT() == 1) {
+				timer_actual_nextion = HAL_GetTick();
 				return;
+			}
 		} else
 			PAGE = PAGE1;
 
@@ -141,7 +151,7 @@ void NEXTION(void) {
 
 		if (can_vector[ID_control_torque_motor].word_1 == 0) {
 			AIR_IT();
-//			BOTAO_IT();
+			BOTAO_IT();
 		}
 
 		PAGE_IT();
@@ -161,20 +171,54 @@ void NEXTION(void) {
 				NexXfloatSetValue(1, HODOM/10);
 				NexXfloatSetValue(2, TEMPERATURA);
 				NexTextSetText(0, MODO);
+				switch (MODO_FLAG) {
+					case 1:
+					NexTextSetColor(0, VERDE);
+					break;
+					case 2:
+					NexTextSetColor(0, MARGENTA);
+					break;
+					case 3:
+					NexTextSetColor(0, AZUL_CLARO);
+					break;
+					case 4:
+					NexTextSetColor(0, AZUL_ESCURO);
+					break;
+					default:
+					NexTextSetColor(0, VERMELHO);
+					break;
+				}
 				NexTextSetText(1, BRAKE);
 			}
 			NexVariableSetValue(1, !CAN_STATE);
 			break;
 
 		case PAGE2:
-			NexXfloatSetValue(3, HODOM);
+			NexXfloatSetValue(3, HODOM/10);
 			NexXfloatSetValue(4, TEMPERATURA);
 			NexTextSetText(0, MODO);
+			switch (MODO_FLAG) {
+				case 1:
+				NexTextSetColor(0, VERDE);
+				break;
+				case 2:
+				NexTextSetColor(0, MARGENTA);
+				break;
+				case 3:
+				NexTextSetColor(0, AZUL_CLARO);
+				break;
+				case 4:
+				NexTextSetColor(0, AZUL_ESCURO);
+				break;
+				default:
+				NexTextSetColor(0, VERMELHO);
+				break;
+			}
 			NexTextSetText(3, AIR);
 			if (AIR_FLAG != 1)
-			sendCommand("t3.pco=63488");
+			NexTextSetColor(3, VERMELHO);
 			else
-			sendCommand("t3.pco=1732");
+			NexTextSetColor(3, VERDE);
 			break;
 
 			case PAGE3:
@@ -214,20 +258,24 @@ uint8_t MODO_IT() {
 	}
 	if (previus_MODO_FLAG != MODO_FLAG && previus_MODO_FLAG != 0)
 	{
-		if (previus_page == PAGE) {
+		if (previus_page_saved == 0) {
 			timer_restart(&modoTimeout);
-			previus_page = PAGE;}
+			previus_page = PAGE;
+			previus_page_saved++;
+		}
 		PAGE = PAGE4;
 		PAGE_IT();
 		NexPictureSetPic(0, 106 + MODO_FLAG);
-		if(timer_wait_ms(modoTimeout, 1500))
+		if(timer_wait_ms(modoTimeout, 2000))
 		{
 			previus_MODO_FLAG = MODO_FLAG;
 			PAGE = previus_page;
+			previus_page_saved = 0;
 			PAGE_IT();
 		}
 		return 1;
-	}
+	} else
+		previus_page = PAGE;
 	return 0;
 }
 
@@ -248,54 +296,55 @@ void AIR_IT() {
 /*Get and modify actual page*/
 void PAGE_IT() {
 	pageMessageReceived = 0;
-	timer_restart(&pageTimeout); //initializes a timer to count response time
-	sendCommand("sendme"); // send command to get the page
+	//initializes a timer to count response time
 
-	while (!pageMessageReceived) {
-		if (timer_wait_ms(pageTimeout, 50)) { //if the page does not match, it will send a command to switch the page
-			pageMessageReceived = 0;
-			return;
-		}
-	}
 	if (previus_page > PAGE2)
-		previus_page = PAGE1;
+		PAGE = PAGE1;
 	if (actual_page != PAGE) { //if the page does not match, it will send a command to switch the page
 		NexPageShow(PAGE);
+		actual_page = PAGE;
 	}
+
+	sendCommand("sendme"); // send command to get the page
+
+	//	while (!pageMessageReceived) {
+	//		if (timer_wait_ms(pageTimeout, 50)) { //if the page does not match, it will send a command to switch the page
+	//			pageMessageReceived = 0;
+	//			return;
+	//		}
+	//	}
 }
 
 /*Get state of bottom to replace page*/
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-				if (FLAG_MSG != 0) {
-					FLAG_MSG = 0;
-					return;
-				}
-
-				if (PAGE == PAGE2)
-					PAGE = PAGE1;
-				else
-					PAGE++;
-}
-
-//void BOTAO_IT() {
-//
-//	if (BOTAO_STATE == 0 && last_state == 0) {
-//		if (timer_wait_ms(botaoTimeout, 100)) {
-//			last_state++;
-//			if (FLAG_MSG != 0) {
-//				FLAG_MSG = 0;
-//				return;
-//			}
-//
-//			if (PAGE == PAGE2)
-//				PAGE = PAGE1;
-//			else
-//				PAGE++;
-//		}
-//	} else if (BOTAO_STATE != 0 && last_state != 0) {
-//		timer_restart(&botaoTimeout);
-//		last_state = 0;
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+//	if (FLAG_MSG != 0) {
+//		FLAG_MSG = 0;
+//		return;
 //	}
+//	if (PAGE == PAGE2)
+//		PAGE = PAGE1;
+//	else
+//		PAGE++;
+//	return;
 //}
+void BOTAO_IT() {
+
+	if (BOTAO_STATE == 0 && last_state == 0) {
+		if (timer_wait_ms(botaoTimeout, 50)) {
+			last_state++;
+			if (FLAG_MSG != 0) {
+				FLAG_MSG = 0;
+				return;
+			}
+
+			if (PAGE == PAGE2)
+				PAGE = PAGE1;
+			else
+				PAGE++;
+		}
+	} else if (BOTAO_STATE != 0 && last_state != 0) {
+		timer_restart(&botaoTimeout);
+		last_state = 0;
+	}
+}

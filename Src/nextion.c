@@ -1,8 +1,9 @@
 #include "stm32f1xx_hal.h"
 #include <string.h>
 #include <stdio.h>
+#include "COLOR.h"
 
-extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart2;
 
 #define NEX_RET_CMD_FINISHED                 (0x01)
 #define NEX_RET_EVENT_LAUNCHED               (0x88)
@@ -31,8 +32,8 @@ void sendCommand(const char* cmd)
 //   {
 //      huart3.Instance->DR;
 //   }
-   HAL_UART_Transmit(&huart3, (uint8_t*) cmd, strlen (cmd), 50);
-   HAL_UART_Transmit (&huart3, (uint8_t*)&ENDTERMS, 3, 50);
+   HAL_UART_Transmit(&huart2, (uint8_t*) cmd, strlen (cmd), 100);
+   HAL_UART_Transmit (&huart2, (uint8_t*)&ENDTERMS, 3, 100);
 }
 
 int recvRetCommandFinished(void)
@@ -54,7 +55,7 @@ int recvRetNumber(void)
 {
    int number=0;
    uint8_t temp[8]={0};
-   HAL_UART_Receive (&huart3, (uint8_t*)&temp, 8, 50);
+   HAL_UART_Receive (&huart2, (uint8_t*)&temp, 8, 50);
 
    if (temp[0] == NEX_RET_NUMBER_HEAD && temp[5]==0xFF && temp[6]==0xFF && temp[7]==0xFF )
    {
@@ -73,7 +74,7 @@ int recvRetString(char* buffer,int len)
    char temp2[20]={0};
    int pointer=0, i=0;
    uint8_t c=0;
-   HAL_UART_Receive (&huart3, (uint8_t*)&temp2, len+4, 50);
+   HAL_UART_Receive (&huart2, (uint8_t*)&temp2, len+4, 50);
    for (i=0; i<len+4;  i++)
    {
       c=temp2[i];
@@ -130,6 +131,14 @@ int NexTextSetText(int Text,const char *buffer)
    char cmd[50]={0}, buff[40]={0};
    for (int i=0; i<20; i++) buff[i]=buffer[i];
    sprintf (cmd, "t%d.txt=\"%s\"",  Text,  buff);
+   sendCommand (cmd);
+   return recvRetCommandFinished ();
+}
+
+int NexTextSetColor(int Text,int Color)
+{
+   char cmd[50]={0};
+   sprintf (cmd, "t%d.pco=%d",  Text,  Color);
    sendCommand (cmd);
    return recvRetCommandFinished ();
 }
