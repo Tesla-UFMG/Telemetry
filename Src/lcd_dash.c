@@ -56,6 +56,15 @@ char MODO[11];
 char AIR[11];
 char BRAKE[5] = "5/8";
 
+uint8_t VELOCIDADE = 66;
+uint16_t TORQUE = 155;
+uint8_t CARGA = 56;
+uint16_t TENSAO = 1648;
+uint16_t HODOM = 265;
+uint16_t TEMPERATURA = 418;
+char MODO[10] = "SkidPad";
+char BRAKE[5] = "3/4";
+uint8_t STATEOF_CAN = 0;
 /* Variables to nextion test loop */
 uint8_t PAGE_ERRO = 0;
 uint8_t previus_MODO_FLAG = 0;
@@ -105,6 +114,16 @@ void NEXTION_BusOff_Verify() {
 	if (HAL_GetTick() - timer_actual_nextion > 2000) {
 		HAL_CAN_Stop(&hcan);}
 }
+void nextion_init_can() {
+	pageMessageReceived = 0;
+	timer_restart(&pageTimeout);
+
+	while (!pageMessageReceived) {
+		sendCommand("sendme");
+		if (timer_wait_ms(pageTimeout, 300)) {
+			pageMessageReceived = 0;
+		}
+	}
 
 void NEXTION_Init() {
 	pageMessageReceived = 0;

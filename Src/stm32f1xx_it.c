@@ -44,7 +44,6 @@ uint32_t timer_actual = 0;
 extern uint32_t timer_actual_uart;
 extern uint32_t timer_actual_nextion;
 
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
