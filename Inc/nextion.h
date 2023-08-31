@@ -14,6 +14,8 @@ int NexPageShow(int Page);
 
 int NexTextSetText(int Text,const char *buffer);
 
+int NexTextSetColor(int Text,int Color);
+
 int NexTextGetText( int Number ,char* buffer, int len  );
 
 int NexNumberSetValue(int Number,int value);

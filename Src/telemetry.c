@@ -1,164 +1,205 @@
 #include "telemetry.h"
-
+#include "ID.h"
 
 extern CanIdData_t can_vector[CAN_IDS_NUMBER];
-extern uint8_t uart_user_message[DMA_RX_BUFFER_SIZE];	/* Buffer received for user access */
-extern UART_HandleTypeDef huart2;
-extern Timer_t packTimer;
+extern UART_HandleTypeDef huart3;
 extern uint32_t actualTimer;
 extern SendMode_e mode;
-extern uint8_t FLAG_ERRO;
+extern uint8_t ECU_erro_bin_to_int();
+extern uint8_t BMS_erro_bin_to_int();
+extern uint8_t DMA_RX_Buffer_3[DMA_RX_BUFFER_SIZE];
+
+#define _ERRO_CONTROLE ECU_erro_bin_to_int()
+#define _ERRO_INVERSOR can_vector[ID_control_torque_motor].word_1
+#define _ERRO_SEGURANCA BMS_erro_bin_to_int()
+#define PACKS_Timer 2500
+
+TelemetryINFO_e PACK = PACKS1;
+uint32_t informacaoTimeout = 0;
+uint8_t XBEE_UART_BUFFER[DMA_RX_BUFFER_SIZE_XBEE]; /* Buffer received for user access */
+TelemetryINFO_e INFORMACAO = GERAL;
 uint16_t api_length = 0;
+int8_t FLAG_MSG = 0;
 
 /* Telemetry variables */
 uint8_t _real_clock_received = 0;
 
+uint8_t compareString(uint8_t *first, uint8_t *second, uint16_t len) {
+	while (*first == *second) {
 
-uint8_t compareString(uint8_t *first, uint8_t *second, uint16_t len)
-{
-  while (*first == *second) {
+		len--;
+		if (len == 0)
+			return 1; /* Same strings */
 
-    len--;
-    if(len == 0)  return 1; /* Same strings */
-     
-    first++;
-    second++;
-  }
+		first++;
+		second++;
+	}
 
-  return 0;
+	return 0;
 }
 
-void uart2MessageReceived(void)
-{
-  uint16_t checksum = 0;
-  uint8_t return_status = 0;
-  const uint8_t* ping_request = "ping";
+void uart2MessageReceived(void) {
+	uint8_t return_status = 0;
+	uint8_t *ping_request = (uint8_t*) "ping";
 
+	/* Data receive format
 
-  if(uart_user_message[3] != 0x90)  return; /* If the message received != "Receive Packet" */
+	 Start: 0x7E
+	 Length: 0x?? 0x??
+	 Flame type: 0x90
+	 64 bit adress: 0x?? 0x?? 0x?? 0x?? 0x?? 0x?? 0x?? 0x??
+	 16 bit adress: 0x?? 0x??
+	 Receive options: 0x40
+	 Receive data: 0x?? 0x?? 0x?? 0x?? ... ... maximum 255 bytes
+	 Checksum: 0x??
+	 */
 
-  return_status = compareString(uart_user_message + 15, ping_request, 4); /* Comparing if the received message is the xbee ping request */
-  if(return_status) return;
+	memcpy(XBEE_UART_BUFFER, DMA_RX_Buffer_3, DMA_RX_BUFFER_SIZE_XBEE);
 
+	if (XBEE_UART_BUFFER[3] != 0x90)
+		return; /* If the message received != "Receive Packet" */
 
-  switch (mode)
-  {
-  case BYTES_API:
-	blinkLed3();
-    api_length = uart_user_message[1] << 8;
-    api_length += uart_user_message[2];
-    if(api_length > 255)  return; /* If api message length > DMA_RX_BUFFER_SIZE */
+	return_status = compareString(XBEE_UART_BUFFER + 15, ping_request, 4); /* Comparing if the received message is the xbee ping request */
+	if (return_status)
+		return;
+	if (mode == BYTES_API) {
+		blinkLed3();
+		api_length = XBEE_UART_BUFFER[1] << 8;
+		api_length += XBEE_UART_BUFFER[2];
+		if (api_length > 255)
+			return; /* If api message length > DMA_RX_BUFFER_SIZE */
 
-    FLAG_ERRO = uart_user_message[15];
-
-
-    break;
-
-  default:
-    break;
-  }
-}
-//
-//void realClockRequest(void)
-//{
-//  uint8_t can_vet_tx[8];
-//
-//  /* 1) Global variables Init */
-//  can_vector[10].word_0 = 1;
-//  can_vector[10].word_1 = 0;
-//  can_vector[10].word_2 = 0;
-//  can_vector[10].word_3 = 0;
-//
-//  /* 2) Sending clock request */
-//  for(uint8_t i = 0; i < 41; i++){
-//
-//    blinkLed1();
-//    blinkLed2();
-//    blinkLed3();
-//    HAL_Delay(50);
-//
-//    if(_real_clock_received == 1){
-//     UART_Print_Debug("_realclock received, por isso to saindo da requisição\n\r");
-//     UART_Print_Debug("Número de tentativas = %u\n\r", i);
-//    }
-//    else{
-//      xbeeSend(10, BYTES_API, can_vector[REAL_CLK_CAN_ID].word_0, can_vector[10].word_1, can_vector[10].word_2, can_vector[10].word_3);
-//    }
-//  }
-//
-//  /* Sending the real clock in can bus */
-//  can_vet_tx[0] = can_vector[REAL_CLK_CAN_ID].word_0;
-//  can_vet_tx[1] = can_vector[REAL_CLK_CAN_ID].word_0 >> 8;
-//  can_vet_tx[2] = can_vector[REAL_CLK_CAN_ID].word_1;
-//  can_vet_tx[3] = can_vector[REAL_CLK_CAN_ID].word_1 >> 8;
-//  can_vet_tx[4] = can_vector[REAL_CLK_CAN_ID].word_2;
-//  can_vet_tx[5] = can_vector[REAL_CLK_CAN_ID].word_2 >> 8;
-//  can_vet_tx[6] = can_vector[REAL_CLK_CAN_ID].word_3;
-//  can_vet_tx[7] = can_vector[REAL_CLK_CAN_ID].word_3 >> 8;
-//  CAN_Transmit(can_vet_tx, REAL_CLK_CAN_ID);
-//}
-
-void xbeePacks(void)
-{
-  uint16_t i;
-
-  /*Pack 0*/
-  for(i = 260; i < 264; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
-
-  /*Pack 1*/
-  for(i = 265; i < 269; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
-
-  /*Pack 2*/
-  for(i = 270; i < 274; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
-
-  /*Pack 3*/
-  for(i = 275; i < 279; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
-
-  /*Pack 4*/
-  for(i = 280; i < 284; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
-
-  /*Pack 5*/
-  for(i = 285; i < 289; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
+		FLAG_MSG = XBEE_UART_BUFFER[15];
+	}
+//	for (uint8_t i = 0; i < DMA_RX_BUFFER_SIZE_NEXTION; i++)
+//		XBEE_UART_BUFFER[i] = 0;
 }
 
-void xbeeGeneral(void)
-{
-  uint16_t i;
-
-	/*Bateria General Information*/
-	xbeeSend(0, can_vector[0].word_0, 0, 0, 0);
-  for(i = 51; i < 55; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
-
-
-
-	/*Aquisição General Information*/
-  xbeeSend(170, can_vector[170].word_0, can_vector[170].word_1, can_vector[170].word_2, can_vector[170].word_3);
-  xbeeSend(171, can_vector[171].word_0, can_vector[171].word_1, can_vector[171].word_2, can_vector[171].word_3);
-  xbeeSend(161, can_vector[161].word_0, can_vector[161].word_1, can_vector[161].word_2, can_vector[161].word_3);
-  xbeeSend(162, can_vector[161].word_0, can_vector[161].word_1, can_vector[161].word_2, can_vector[161].word_3);
-  for(i = 156; i < 160; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
-
-
-  
-	/*Controle Information*/
-  xbeeSend(1, can_vector[1].word_0, can_vector[1].word_1, can_vector[1].word_2, can_vector[1].word_3);
-  for(i = 101; i < 108; i++)
-    xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1, can_vector[i].word_2, can_vector[i].word_3);
+void xbeePACKS_1(void) {
+	/*Pack 1*/
+	for (int i = ID_safety_pack1_1; i <= ID_safety_pack1_5; i++)
+		xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1,
+				can_vector[i].word_2, can_vector[i].word_3);
 }
 
-void telemetrySend(void)
-{
-  if((actualTimer-packTimer.previous)>packTimer.interval){
-    xbeePacks();
-    packTimer.previous = HAL_GetTick();
-  }
-  xbeeGeneral();
+void xbeePACKS_2(void) {
+	/*Pack 2*/
+	for (int i = ID_safety_pack2_1; i <= ID_safety_pack2_5; i++)
+		xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1,
+				can_vector[i].word_2, can_vector[i].word_3);
+}
+
+void xbeePACKS_3(void) {
+	/*Pack 3*/
+	for (int i = ID_safety_pack3_1; i <= ID_safety_pack3_5; i++)
+		xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1,
+				can_vector[i].word_2, can_vector[i].word_3);
+}
+
+void xbeePACKS_4(void) {
+	/*Pack 4*/
+	for (int i = ID_safety_pack4_1; i <= ID_safety_pack4_5; i++)
+		xbeeSend(i, can_vector[i].word_0, can_vector[i].word_1,
+				can_vector[i].word_2, can_vector[i].word_3);
+}
+
+void xbeeGERAL(void) {
+	/*GERAL*/
+	xbeeSend(ID_safety_voltage, can_vector[ID_safety_voltage].word_0,
+			can_vector[ID_safety_voltage].word_1, 0,
+			can_vector[ID_safety_voltage].word_3);
+
+	xbeeSend(ID_safety_bms, can_vector[ID_safety_bms].word_0, _ERRO_SEGURANCA,
+			can_vector[ID_safety_bms].word_2, can_vector[ID_safety_bms].word_3);
+
+	xbeeSend(ID_safety_current, 0, can_vector[ID_safety_current].word_1, 0,
+			can_vector[ID_safety_current].word_3);
+
+	xbeeSend(ID_safety_charge, can_vector[ID_safety_charge].word_0, 0, 0,
+			can_vector[ID_safety_charge].word_3);
+
+	xbeeSend(ID_safety_soc, can_vector[ID_safety_soc].word_0, 0, 0, 0);
+
+	xbeeSend(ID_control_speed_l_motor,
+			can_vector[ID_control_speed_l_motor].word_0,
+			can_vector[ID_control_speed_l_motor].word_1, 0, 0);
+
+	xbeeSend(ID_control_speed_r_motor,
+			can_vector[ID_control_speed_r_motor].word_0,
+			can_vector[ID_control_speed_r_motor].word_1, 0, 0);
+}
+
+void xbeeCONTROLE(void) {
+	/*CONTROLE*/
+	xbeeSend(ID_control_accelerometer,
+			can_vector[ID_control_accelerometer].word_0,
+			can_vector[ID_control_accelerometer].word_1,
+			can_vector[ID_control_accelerometer].word_2, 0);
+
+	xbeeSend(ID_control_gyroscopic,
+				can_vector[ID_control_gyroscopic].word_0,
+				can_vector[ID_control_gyroscopic].word_1,
+				can_vector[ID_control_gyroscopic].word_2, 0);
+
+	xbeeSend(ID_control_speed_average, 0,
+			can_vector[ID_control_speed_average].word_1,
+			can_vector[ID_control_speed_average].word_2,
+			can_vector[ID_control_speed_average].word_3);
+
+	xbeeSend(ID_control_hodometer, can_vector[ID_control_hodometer].word_0,
+			can_vector[ID_control_hodometer].word_1,
+			can_vector[ID_control_hodometer].word_2,
+			can_vector[ID_control_hodometer].word_3);
+
+	xbeeSend(ID_control_torque_motor, _ERRO_CONTROLE, _ERRO_INVERSOR, 0, 0);
+
+	xbeeSend(ID_control_speed_wheel, can_vector[ID_control_speed_wheel].word_0,
+			can_vector[ID_control_speed_wheel].word_1,
+			can_vector[ID_control_speed_wheel].word_2,
+			can_vector[ID_control_speed_wheel].word_3);
+
+	xbeeSend(ID_acquisition_brake, can_vector[ID_acquisition_brake].word_0,
+				can_vector[ID_acquisition_brake].word_1,
+				can_vector[ID_acquisition_brake].word_2,
+				can_vector[ID_acquisition_brake].word_3);
+}
+
+void TELEMETRY() {
+	switch (INFORMACAO) {
+	case GERAL:
+		xbeeGERAL();
+		INFORMACAO = CONTROL;
+		break;
+
+	case CONTROL:
+		xbeeCONTROLE();
+		INFORMACAO = PACKS;
+		break;
+
+	default:
+		if (timer_wait_ms(informacaoTimeout, PACKS_Timer))
+			switch (PACK) {
+			case PACKS1:
+				xbeePACKS_1();
+				PACK = PACKS2;
+				timer_restart(&informacaoTimeout);
+				break;
+			case PACKS2:
+				xbeePACKS_2();
+				PACK = PACKS3;
+				timer_restart(&informacaoTimeout);
+				break;
+			case PACKS3:
+				xbeePACKS_3();
+				PACK = PACKS4;
+				timer_restart(&informacaoTimeout);
+				break;
+			case PACKS4:
+				xbeePACKS_4();
+				PACK = PACKS1;
+				timer_restart(&informacaoTimeout);
+			}
+		INFORMACAO = GERAL;
+		break;
+	}
 }

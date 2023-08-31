@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -54,6 +54,8 @@
 /* Private variables ---------------------------------------------------------*/
 extern HAL_StatusTypeDef UART_STATUS;
 uint8_t botao_gpio;
+
+extern uint8_t DMA_RX_Buffer[DMA_RX_BUFFER_SIZE];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,6 +67,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+
 
 /* USER CODE END 0 */
 
@@ -104,24 +108,21 @@ int main(void)
   MX_USART3_UART_Init();
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-  interfaceInit();
+	interfaceInit();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
-  while (1)
-  {
+	while (1) {
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    telemetrySend();
-    nextionLoop();
-//    //nextionTestLoop();
-//    //debugFunction();
-    timerAtualization();
-  }
+//		HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+		TELEMETRY();
+		NEXTION();
+		timerAtualization();
+	}
   /* USER CODE END 3 */
 }
 
@@ -176,7 +177,7 @@ void SystemClock_Config(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+	/* User can add his own implementation to report the HAL error return state */
   /* USER CODE END Error_Handler_Debug */
 }
 
