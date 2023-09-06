@@ -1,5 +1,7 @@
 #include "stm32f1xx_hal.h"
 #include <string.h>
+#include <stdio.h>
+#include "COLOR.h"
 
 extern UART_HandleTypeDef huart3;
 
@@ -26,12 +28,12 @@ char ENDTERMS[]={255,255,255};
 void sendCommand(const char* cmd)
 {
    
-   while (__HAL_UART_GET_FLAG (&huart3, UART_FLAG_RXNE))
-   {
-      huart3.Instance->DR;
-   }
-   HAL_UART_Transmit (&huart3, (uint8_t*) cmd, strlen (cmd), 50);
-   HAL_UART_Transmit (&huart3, (uint8_t*)&ENDTERMS, 3, 50);
+//   while (__HAL_UART_GET_FLAG (&huart3, UART_FLAG_RXNE))
+//   {
+//      huart3.Instance->DR;
+//   }
+   HAL_UART_Transmit(&huart3, (uint8_t*) cmd, strlen (cmd), 100);
+   HAL_UART_Transmit (&huart3, (uint8_t*)&ENDTERMS, 3, 100);
 }
 
 int recvRetCommandFinished(void)
@@ -39,7 +41,7 @@ int recvRetCommandFinished(void)
    
    int ret=0;
    uint8_t temp[4]={0};
-   HAL_UART_Receive (&huart3, (uint8_t*)&temp, 4, 100);
+//   HAL_UART_Receive (&huart3, (uint8_t*)&temp, 4, 100);
 
    if (temp[0] == NEX_RET_CMD_FINISHED && temp[1]==0xFF && temp[2]==0xFF && temp[3]==0xFF)
    {
@@ -106,7 +108,6 @@ int recvRetString(char* buffer,int len)
 int nexInit(void)
 {
    int ret1=0;
-   int ret2=0;
    
    sendCommand ("");
    sendCommand ("bkcmd=1");
@@ -127,16 +128,24 @@ int NexPageShow(int Page)
 
 int NexTextSetText(int Text,const char *buffer)
 {
-   char cmd[50]={0}, buff[50]={0};
+   char cmd[50]={0}, buff[40]={0};
    for (int i=0; i<20; i++) buff[i]=buffer[i];
    sprintf (cmd, "t%d.txt=\"%s\"",  Text,  buff);
    sendCommand (cmd);
    return recvRetCommandFinished ();
 }
 
+int NexTextSetColor(int Text,int Color)
+{
+   char cmd[50]={0};
+   sprintf (cmd, "t%d.pco=%d",  Text,  Color);
+   sendCommand (cmd);
+   return recvRetCommandFinished ();
+}
+
 int NexTextGetText( int Number ,char* buffer, int len  )
 {
-   char cmd[10]={0};
+   char cmd[11]={0};
    sprintf (cmd, "get t%d.txt", Number);
    sendCommand (cmd);
    return recvRetString (buffer, len);
@@ -184,7 +193,7 @@ int NexButtonGetText(int Button, char *buffer, int len)
 
 int NexButtonSetText(int Button, const char *buffer)
 {
-   char cmd[50]={0}, buff[50]={0};
+   char cmd[50]={0}, buff[40]={0};
    for (int i=0; i<strlen (buffer); i++) buff[i]=buffer[i];
    sprintf (cmd, "b%d.txt=\"%s\"",  Button,  buff);
    sendCommand (cmd);
@@ -233,7 +242,7 @@ int NexDSButtonGetText(int DSButton, char *buffer, int len)
 
 int NexDSButtonSetText(int DSButton,const char *buffer)
 {
-   char cmd[50]={0}, buff[50]={0};
+   char cmd[50]={0}, buff[40]={0};
    for (int i=0; i<strlen  (buffer); i++) buff[i]=buffer[i];
    sprintf (cmd,"bt%d.txt=\"%s\"",DSButton,buff);
    sendCommand (cmd);
@@ -314,7 +323,7 @@ int NexVariableGetText(int Variable, char *buffer, uint32_t len)
 
 int NexVariableSetText(int Variable,const char *buffer)
 {
-   char cmd[50]={0}, buff[50]={0};
+   char cmd[50]={0}, buff[40]={0};
    for (int i=0; i<strlen(buffer);i++) buff[i]=buffer[i];
    sprintf (cmd,"va%d.txt=\"%s\"",Variable,buff);
    sendCommand (cmd);

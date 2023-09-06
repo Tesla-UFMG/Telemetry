@@ -1,0 +1,10 @@
+Interface_Master.c:32:6:interfaceInit	2
+Interface_Master.c:56:6:UART_Print_Debug	1
+Interface_Master.c:72:6:canMessageReceived	2
+Interface_Master.c:82:6:blinkLed1	1
+Interface_Master.c:87:6:blinkLed2	1
+Interface_Master.c:92:6:blinkLed3	1
+Interface_Master.c:97:6:timerAtualization	1
+Interface_Master.c:102:6:debugFunction	1
+Interface_Master.c:110:9:timer_wait_ms	2
+Interface_Master.c:117:6:timer_restart	1

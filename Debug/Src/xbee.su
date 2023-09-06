@@ -1,0 +1,2 @@
+../Src/xbee.c:13:9:xbeeApiModeSend	56	static
+../Src/xbee.c:72:6:xbeeSend	168	static

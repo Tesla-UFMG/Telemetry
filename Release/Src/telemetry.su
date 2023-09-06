@@ -1,0 +1,9 @@
+../Src/telemetry.c:24:9:compareString	0	static
+../Src/telemetry.c:38:6:uart2MessageReceived	8	static
+../Src/telemetry.c:71:6:xbeePACKS_1	16	static
+../Src/telemetry.c:78:6:xbeePACKS_2	16	static
+../Src/telemetry.c:85:6:xbeePACKS_3	16	static
+../Src/telemetry.c:92:6:xbeePACKS_4	16	static
+../Src/telemetry.c:99:6:xbeeGERAL	24	static
+../Src/telemetry.c:124:6:xbeeCONTROLE	24	static
+../Src/telemetry.c:147:6:telemetrySend	8	static

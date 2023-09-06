@@ -1,0 +1,4 @@
+../Src/Failure.c:26:9:ECU_erro_bin_to_int	0	static
+../Src/Failure.c:35:9:BMS_erro_bin_to_int	0	static
+../Src/Failure.c:42:10:INVERSOR_flag	0	static
+../Src/Failure.c:65:6:FAILURE_IT	8	static

@@ -1,0 +1,16 @@
+../Src/stm32f1xx_it.c:95:6:NMI_Handler	0	static
+../Src/stm32f1xx_it.c:108:6:HardFault_Handler	0	static
+../Src/stm32f1xx_it.c:123:6:MemManage_Handler	0	static
+../Src/stm32f1xx_it.c:138:6:BusFault_Handler	0	static
+../Src/stm32f1xx_it.c:153:6:UsageFault_Handler	0	static
+../Src/stm32f1xx_it.c:168:6:SVC_Handler	0	static
+../Src/stm32f1xx_it.c:181:6:DebugMon_Handler	0	static
+../Src/stm32f1xx_it.c:194:6:PendSV_Handler	0	static
+../Src/stm32f1xx_it.c:207:6:SysTick_Handler	8	static
+../Src/stm32f1xx_it.c:228:6:DMA1_Channel2_IRQHandler	8	static
+../Src/stm32f1xx_it.c:242:6:DMA1_Channel3_IRQHandler	8	static
+../Src/stm32f1xx_it.c:256:6:DMA1_Channel6_IRQHandler	8	static
+../Src/stm32f1xx_it.c:270:6:USB_LP_CAN1_RX0_IRQHandler	16	static
+../Src/stm32f1xx_it.c:296:6:CAN1_RX1_IRQHandler	8	static
+../Src/stm32f1xx_it.c:310:6:USART2_IRQHandler	8	static
+../Src/stm32f1xx_it.c:326:6:USART3_IRQHandler	8	static

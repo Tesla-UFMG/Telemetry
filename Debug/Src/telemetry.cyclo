@@ -1,0 +1,6 @@
+telemetry.c:15:9:compareString	3
+telemetry.c:29:6:uart2MessageReceived	7
+telemetry.c:85:6:realClockRequest	3
+telemetry.c:124:6:xbeePacks	7
+telemetry.c:153:6:xbeeGeneral	4
+telemetry.c:180:6:telemetrySend	2

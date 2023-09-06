@@ -1,0 +1,3 @@
+lcd_dash.c:46:6:uart3MessageReceived	2
+lcd_dash.c:55:6:nextion_init_can	3
+lcd_dash.c:69:6:nextionLoop	12

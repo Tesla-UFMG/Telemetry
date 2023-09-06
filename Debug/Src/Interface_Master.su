@@ -1,0 +1,10 @@
+../Src/Interface_Master.c:35:6:interfaceInit	8	static
+../Src/Interface_Master.c:47:6:UART_Print_Debug	112	static
+../Src/Interface_Master.c:62:6:canMessageReceived	0	static
+../Src/Interface_Master.c:72:6:blinkLed1	8	static
+../Src/Interface_Master.c:76:6:blinkLed2	8	static
+../Src/Interface_Master.c:80:6:blinkLed3	8	static
+../Src/Interface_Master.c:84:6:timerAtualization	8	static
+../Src/Interface_Master.c:88:6:debugFunction	0	static
+../Src/Interface_Master.c:95:9:timer_wait_ms	16	static
+../Src/Interface_Master.c:102:6:timer_restart	8	static

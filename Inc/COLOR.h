@@ -1,0 +1,44 @@
+/*
+ * COLOR.h
+ *
+ *  Created on: Jul 23, 2023
+ *      Author: Gabriel
+ */
+
+#ifndef COLOR_H_
+#define COLOR_H_
+
+#define AMARELO 0xFFE0
+#define AMARELO_CLARO 0xFFE8
+#define AMARELO_ESCURO 0xBDE0
+#define AZUL 0x001F
+#define AZUL_CLARO 0x07FF
+#define AZUL_ESCURO 0x0015
+#define BRANCO 0xFFFF
+#define CINZA 0x20DA
+#define CINZA_CLARO 0xAD55
+#define CINZA_ESCURO 0x52AA
+#define LARANJA 0xFC00
+#define LARANJA_CLARO 0xFCE8
+#define LARANJA_ESCURO 0xBB00
+#define LILAS 0xC21F
+#define MARGENTA 0xF818
+#define MARGENTA_CLARO 0xFABA
+#define MARGENTA_ESCURO 0xA810
+#define MARROM 0xC408
+#define MARROM_CLARO 0xCCEE
+#define MARROM_ESCURO 0x82A5
+#define PRETO 0x0000
+#define ROSA 0xF810
+#define ROSA_CLARO 0xFAB5
+#define ROSA_ESCURO 0xA80A
+#define VERDE_nextion 0x06C4
+#define VERDE 0x07E0
+#define VERDE_CLARO 0x57EA
+#define VERDE_ESCURO 0x0540
+#define VERMELHO 0xF800
+#define VERMELHO_CLARO 0xFAAA
+#define VERMELHO_ESCURO 0xA800
+#define VIOLETA 0x8010
+
+#endif /* COLOR_H_ */
