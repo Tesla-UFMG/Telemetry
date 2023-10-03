@@ -30,6 +30,7 @@ extern UART_HandleTypeDef huart3; /* */
 
 extern void Error_Handler(); /* */
 extern void USART3_Message_Received();
+extern void uart2MessageReceived();
 /* USER CODE END EF */
 
 /* Private variables --------------------------------------------------------*/
@@ -53,14 +54,14 @@ uint8_t DMA_RX_Buffer_2[DMA_RX_BUFFER_SIZE]; /* */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
 	/* Prevent unused argument(s) compilation warning */
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
-	if (huart->Instance == USART3) {
+	if (huart->Instance == USART2) {
 		USART3_Message_Received();
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart3, DMA_RX_Buffer_3,
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, DMA_RX_Buffer_2,
 				DMA_RX_BUFFER_SIZE);
 	}
-	if (huart->Instance == USART2) {
+	if (huart->Instance == USART3) {
 		uart2MessageReceived();
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, DMA_RX_Buffer_2,
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart3, DMA_RX_Buffer_3,
 				DMA_RX_BUFFER_SIZE);
 	}
 }

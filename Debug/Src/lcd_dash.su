@@ -2,8 +2,8 @@
 ../Src/lcd_dash.c:84:6:USART3_Message_Received	16	static
 ../Src/lcd_dash.c:98:6:NEXTION_BusOff_Verify	8	static
 ../Src/lcd_dash.c:109:6:NEXTION_Init	8	static
-../Src/lcd_dash.c:282:6:AIR_IT	0	static
-../Src/lcd_dash.c:297:6:PAGE_IT	8	static
-../Src/lcd_dash.c:240:9:MODO_IT	8	static
-../Src/lcd_dash.c:331:6:BOTAO_IT	8	static
-../Src/lcd_dash.c:136:6:NEXTION	8	static
+../Src/lcd_dash.c:283:6:AIR_IT	0	static
+../Src/lcd_dash.c:298:6:PAGE_IT	8	static
+../Src/lcd_dash.c:241:9:MODO_IT	8	static
+../Src/lcd_dash.c:332:6:BOTAO_IT	8	static
+../Src/lcd_dash.c:137:6:NEXTION	8	static

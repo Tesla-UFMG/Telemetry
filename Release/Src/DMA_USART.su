@@ -1,3 +1,2 @@
-../Src/DMA_USART.c:13:6:USART_DMA_Init	8	static
-../Src/DMA_USART.c:34:6:DMA_IrqHandler	16	static
-../Src/DMA_USART.c:22:6:USART_IrqHandler	16	static
+../Src/DMA_USART.c:54:6:HAL_UARTEx_RxEventCallback	8	static
+../Src/DMA_USART.c:75:6:USART_Init	8	static

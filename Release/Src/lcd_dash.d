@@ -1,5 +1,4 @@
-Src/lcd_dash.o: ../Src/lcd_dash.c ../Inc/ID.h ../Inc/lcd_dash.h \
- ../Inc/Interface_Master.h \
+Src/lcd_dash.o: ../Src/lcd_dash.c ../Inc/DMA_USART.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
@@ -27,12 +26,13 @@ Src/lcd_dash.o: ../Src/lcd_dash.c ../Inc/ID.h ../Inc/lcd_dash.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Inc/DMA_USART.h ../Inc/nextion.h ../Inc/xbee.h ../Inc/usart.h \
- ../Inc/main.h ../Inc/can.h ../Inc/Failure.h
-../Inc/ID.h:
-../Inc/lcd_dash.h:
-../Inc/Interface_Master.h:
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h ../Inc/ID.h \
+ ../Inc/lcd_dash.h ../Inc/Interface_Master.h ../Inc/DMA_USART.h \
+ ../Inc/nextion.h ../Inc/xbee.h ../Inc/usart.h ../Inc/main.h ../Inc/can.h \
+ ../Inc/nextion.h \
+ ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h \
+ ../Inc/COLOR.h
+../Inc/DMA_USART.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Inc/stm32f1xx_hal_conf.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h:
@@ -61,10 +61,15 @@ Src/lcd_dash.o: ../Src/lcd_dash.c ../Inc/ID.h ../Inc/lcd_dash.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
+../Inc/ID.h:
+../Inc/lcd_dash.h:
+../Inc/Interface_Master.h:
 ../Inc/DMA_USART.h:
 ../Inc/nextion.h:
 ../Inc/xbee.h:
 ../Inc/usart.h:
 ../Inc/main.h:
 ../Inc/can.h:
-../Inc/Failure.h:
+../Inc/nextion.h:
+../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h:
+../Inc/COLOR.h:
