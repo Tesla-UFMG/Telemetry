@@ -51,6 +51,7 @@ uint32_t modoTimeout = 0;
 #define TEMPERATURA can_vector[ID_safety_voltage].word_3
 #define MODO_FLAG can_vector[ID_control_hodometer].word_0
 #define AIR_FLAG can_vector[ID_safety_bms].word_2
+#define ARQUIVO can_vector[ID_acquisition_beacon].word_1
 
 char MODO[11];
 char AIR[11];
@@ -59,6 +60,7 @@ char BRAKE[5] = "5/8";
 /* Variables to nextion test loop */
 uint8_t PAGE_ERRO = 0;
 uint8_t previus_MODO_FLAG = 0;
+uint8_t previus_ARQUIVO = 0;
 uint8_t last_state = 0;
 uint8_t botao = 0;
 uint8_t CAN_STATE = 0;
@@ -102,8 +104,8 @@ void NEXTION_BusOff_Verify() {
 	if (HAL_GetTick() - timer_actual_nextion > 400) {
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart3, DMA_RX_Buffer_3, DMA_RX_BUFFER_SIZE);}
 
-	if (HAL_GetTick() - timer_actual_nextion > 2000) {
-		HAL_CAN_Stop(&hcan);}
+//	if (HAL_GetTick() - timer_actual_nextion > 2000) {
+//		HAL_CAN_Stop(&hcan);}
 }
 
 void NEXTION_Init() {
@@ -127,7 +129,6 @@ void NEXTION_Init() {
 	}
 	if (actual_page != PAGE1 && CAN_STATE == 0)
 		NexPageShow(1);
-	NexPageShow(1);
 	PAGE = actual_page;
 	previus_page = PAGE;
 	NEXTION_STATE++;
@@ -135,7 +136,7 @@ void NEXTION_Init() {
 
 void NEXTION(void) {
 
-//	NEXTION_BusOff_Verify();
+	NEXTION_BusOff_Verify();
 
 	if (timer_wait_ms(updateTimer, 0)) {
 
@@ -155,6 +156,11 @@ void NEXTION(void) {
 		}
 
 		PAGE_IT();
+
+		if (previus_ARQUIVO != ARQUIVO) {
+			ARQUIVO_IT();
+			return;
+		}
 
 		switch (actual_page) {
 		case PAGE0:
@@ -275,7 +281,7 @@ uint8_t MODO_IT() {
 		}
 		return 1;
 	} else
-		previus_page = PAGE;
+	previus_page = PAGE;
 	return 0;
 }
 
@@ -291,6 +297,18 @@ void AIR_IT() {
 		strcpy(AIR, "FALHA");
 		break;
 	}
+}
+
+void ARQUIVO_IT() {
+	uint32_t tim = HAL_GetTick();
+	NexPageShow(5);
+	NexPictureSetPic(0, 111);
+	NexNumberSetValue(0, ARQUIVO);
+	while (HAL_GetTick() - tim < 3000) {
+//		HAL_Delay(10);
+	}
+	NexPageShow(PAGE);
+	previus_ARQUIVO = ARQUIVO;
 }
 
 /*Get and modify actual page*/
